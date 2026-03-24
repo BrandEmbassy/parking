@@ -14,20 +14,15 @@
 import { DbConnection } from "~/module_bindings";
 import type { Reservation, Spot } from "~/module_bindings/types";
 
-// Environment config — read from meta tags injected by SSR
-const SPACETIMEDB_URI =
-  (typeof document !== "undefined" &&
-    document
-      .querySelector('meta[name="spacetimedb-uri"]')
-      ?.getAttribute("content")) ||
-  "";
+// Environment config — baked in at build time via Vite (PUBLIC_ prefix required for client exposure)
+const SPACETIMEDB_URI = import.meta.env.PUBLIC_SPACETIMEDB_URI as string;
+const SPACETIMEDB_MODULE = import.meta.env.PUBLIC_SPACETIMEDB_MODULE as string;
 
-const SPACETIMEDB_MODULE =
-  (typeof document !== "undefined" &&
-    document
-      .querySelector('meta[name="spacetimedb-module"]')
-      ?.getAttribute("content")) ||
-  "";
+if (!SPACETIMEDB_URI || !SPACETIMEDB_MODULE) {
+  throw new Error(
+    "Missing SpacetimeDB config. Ensure PUBLIC_SPACETIMEDB_URI and PUBLIC_SPACETIMEDB_MODULE are set in .env",
+  );
+}
 
 // Module-level singleton connection
 let connection: DbConnection | null = null;
