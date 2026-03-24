@@ -1,22 +1,25 @@
 import { component$, type Signal } from "@builder.io/qwik";
 
-interface PollStatusProps {
-  lastUpdated: Signal<number>;
-  secondsAgo: Signal<number>;
+interface ConnectionStatusProps {
+  connected: Signal<boolean>;
+  error?: Signal<string | null>;
 }
 
-export const PollStatus = component$<PollStatusProps>((props) => {
-  if (props.lastUpdated.value <= 0) {
-    return null;
+export const ConnectionStatus = component$<ConnectionStatusProps>((props) => {
+  if (props.error?.value) {
+    return (
+      <div class="poll-status">
+        <span class="last-updated" style="color: var(--color-danger, #dc3545)">
+          Disconnected: {props.error.value}
+        </span>
+      </div>
+    );
   }
 
   return (
     <div class="poll-status">
       <span class="last-updated">
-        Updated{" "}
-        {props.secondsAgo.value < 5
-          ? "just now"
-          : `${props.secondsAgo.value}s ago`}
+        {props.connected.value ? "Connected — real-time" : "Connecting…"}
       </span>
     </div>
   );

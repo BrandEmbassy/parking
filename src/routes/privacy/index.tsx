@@ -6,7 +6,7 @@ export default component$(() => {
     <div class="container">
       <div class="legal-page">
         <h1>Privacy Policy</h1>
-        <p class="legal-updated">Last updated: March 19, 2026</p>
+        <p class="legal-updated">Last updated: March 24, 2026</p>
 
         <section>
           <h2>Overview</h2>
@@ -33,21 +33,10 @@ export default component$(() => {
               <code>userinfo.profile</code> scope): Your display name and
               profile picture URL.
             </li>
-            <li>
-              <strong>Email address</strong> (via the{" "}
-              <code>userinfo.email</code> scope): Your Google account email
-              address.
-            </li>
-            <li>
-              <strong>Google Sheets access</strong> (via the{" "}
-              <code>spreadsheets</code> scope): Read and write access to Google
-              Sheets, used exclusively to interact with a single shared parking
-              reservation spreadsheet.
-            </li>
           </ul>
           <p>
-            We do not access any other Google user data beyond the scopes listed
-            above.
+            We do not access your email address, Google Sheets, or any other
+            Google user data beyond the profile scope listed above.
           </p>
         </section>
 
@@ -59,19 +48,16 @@ export default component$(() => {
           </p>
           <ul>
             <li>
-              <strong>Authentication and identification:</strong> Your name and
-              email address are used to identify you within the application, so
-              other users can see who has reserved a parking spot. Your name is
+              <strong>Authentication and identification:</strong> Your display
+              name is used to identify you within the application, so other
+              users can see who has reserved a parking spot. Your name is
               displayed in the application header and used as the label when you
               reserve a parking spot.
             </li>
             <li>
-              <strong>Parking spot management:</strong> Your Google OAuth access
-              token is used server-side to read parking spot availability from
-              and write reservation data to a shared Google Spreadsheet. When
-              you reserve a spot, your display name is written into the
-              corresponding cell in the spreadsheet. When you release a spot,
-              your name is removed from the spreadsheet.
+              <strong>Parking spot management:</strong> Your display name is
+              stored alongside your reservations in the database to identify who
+              has reserved each spot.
             </li>
           </ul>
           <p>
@@ -99,16 +85,10 @@ export default component$(() => {
               used.
             </li>
             <li>
-              Your name, as written into the shared parking reservation
-              spreadsheet, is visible to other authorized users of the Service
-              who have access to the same spreadsheet. This is necessary for the
-              core functionality of the Service -- allowing team members to see
-              which parking spots are reserved and by whom.
-            </li>
-            <li>
-              Your Google OAuth tokens (access token and refresh token) are
-              never shared with any third party and are used solely to
-              authenticate API requests to Google on your behalf.
+              Your name, as stored in parking reservations, is visible to other
+              authorized users of the Service. This is necessary for the core
+              functionality — allowing team members to see which parking spots
+              are reserved and by whom.
             </li>
           </ul>
         </section>
@@ -121,45 +101,29 @@ export default component$(() => {
           </p>
           <ul>
             <li>
-              <strong>No server-side database:</strong> The Service does not
-              operate any database. We do not persistently store your personal
-              information on our servers.
+              <strong>Database:</strong> Parking reservation data (your display
+              name associated with a parking spot and date) is stored in a
+              SpacetimeDB Cloud database. The connection between your browser
+              and the database uses encrypted WebSocket connections (WSS).
             </li>
             <li>
               <strong>Cookie-based session storage:</strong> Your authentication
-              data is stored exclusively in browser cookies on your device:
+              data is stored in browser cookies on your device:
               <ul>
                 <li>
-                  <strong>Access token:</strong> Stored as an HTTP-only, secure
-                  cookie (not accessible to client-side JavaScript). Expires
-                  after 1 hour.
+                  <strong>Access token:</strong> Stored as an HTTP-only cookie.
+                  Expires after 1 hour. Used only briefly at login to fetch your
+                  display name.
                 </li>
                 <li>
-                  <strong>Refresh token:</strong> Stored as an HTTP-only, secure
-                  cookie (not accessible to client-side JavaScript). Expires
-                  after 30 days.
-                </li>
-                <li>
-                  <strong>Display name and email:</strong> Stored in browser
-                  cookies for display purposes. Expire after 30 days.
+                  <strong>Display name:</strong> Stored in a browser cookie for
+                  identification purposes. Expires after 30 days.
                 </li>
               </ul>
             </li>
             <li>
               <strong>HTTPS encryption:</strong> All data transmitted between
               your browser and the Service is encrypted using HTTPS/TLS.
-            </li>
-            <li>
-              <strong>Server-side token handling:</strong> OAuth tokens are
-              processed server-side only. Access tokens are used in memory to
-              make authenticated requests to the Google Sheets API and are not
-              written to disk or logs.
-            </li>
-            <li>
-              <strong>Parking reservation data:</strong> Reservation data (your
-              display name associated with a parking spot and date) is stored in
-              the shared Google Spreadsheet and is subject to Google's own
-              security and data protection practices.
             </li>
           </ul>
         </section>
@@ -169,34 +133,24 @@ export default component$(() => {
           <p>
             <strong>Session data:</strong> Authentication cookies are
             automatically deleted by your browser when they expire (access token
-            after 1 hour, refresh token and user info after 30 days). You can
-            delete all session data at any time by logging out of the Service,
-            which immediately clears all authentication cookies.
+            after 1 hour, display name after 30 days). You can delete all
+            session data at any time by logging out of the Service, which
+            immediately clears all authentication cookies.
           </p>
           <p>
-            <strong>Reservation data:</strong> Your display name in the shared
-            Google Spreadsheet is retained for as long as you have an active
-            parking spot reservation. When you release a spot, your name is
-            immediately removed from that reservation entry. Historical
-            reservation data may remain in the spreadsheet for past dates.
+            <strong>Reservation data:</strong> Your display name in the database
+            is retained for as long as you have an active parking spot
+            reservation. When you release a spot, your name is immediately
+            removed from that reservation entry. Historical reservation data may
+            remain in the database for past dates.
           </p>
           <p>
             <strong>Requesting data deletion:</strong> You may request the
             deletion of your personal data at any time by contacting the
-            application administrator. Upon receiving your request, we will:
+            application administrator. Upon receiving your request, we will
+            remove your name from any active or historical reservation entries
+            and confirm completion within a reasonable timeframe.
           </p>
-          <ul>
-            <li>
-              Revoke any stored refresh tokens associated with your account.
-            </li>
-            <li>
-              Remove your name from any active or historical reservation entries
-              in the shared spreadsheet.
-            </li>
-            <li>
-              Confirm completion of the deletion within a reasonable timeframe.
-            </li>
-          </ul>
           <p>
             You can also revoke the application's access to your Google account
             at any time by visiting your{" "}
@@ -208,7 +162,7 @@ export default component$(() => {
               Google Account permissions
             </a>{" "}
             page and removing Nice Parking from the list of authorized
-            applications. This will immediately invalidate all OAuth tokens.
+            applications.
           </p>
         </section>
 

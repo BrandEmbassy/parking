@@ -5,6 +5,7 @@ docker-compose.override.yml
 /lib
 /lib-types
 /server
+/spacetimedb/dist
 
 # Development
 node_modules
