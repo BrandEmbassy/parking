@@ -1,11 +1,12 @@
 # Parking Reservation
 
-Web app for reserving office parking spots, backed by Google Sheets. Built with [Qwik](https://qwik.dev/) and [QwikCity](https://qwik.dev/qwikcity/overview/).
+Web app for reserving office parking spots, backed by [SpacetimeDB](https://spacetimedb.com/?referral=enzy). Built with [Qwik](https://qwik.dev/) and [QwikCity](https://qwik.dev/qwikcity/overview/).
 
 ## Prerequisites
 
 - Node.js `^18.17.0 || ^20.3.0 || >=21.0.0`
-- A Google Cloud project with OAuth 2.0 credentials and Sheets API enabled
+- A Google Cloud project with OAuth 2.0 credentials
+- SpacetimeDB table
 
 ## Environment Variables
 
@@ -19,7 +20,8 @@ cp .env.example .env
 | ---------------------- | ------------------------------ | -------- |
 | `GOOGLE_CLIENT_ID`     | Google OAuth 2.0 Client ID     | Yes      |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth 2.0 Client Secret | Yes      |
-| `GOOGLE_SHEET_ID`      | ID of the Google Spreadsheet   | Yes      |
+| `PUBLIC_SPACETIMEDB_MODULE` | Database name   | Yes      |
+| `PUBLIC_SPACETIMEDB_URI` | Database cluster   | Yes      |
 
 ## Project Structure
 
