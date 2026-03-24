@@ -12,4 +12,6 @@ services:
       - ORIGIN=${ORIGIN:-http://localhost:3000}
       - PORT=3000
       - HOST=0.0.0.0
+      - PUBLIC_SPACETIMEDB_MODULE=${PUBLIC_SPACETIMEDB_MODULE}
+      - PUBLIC_SPACETIMEDB_URI=${PUBLIC_SPACETIMEDB_URI:-wss://maincloud.spacetimedb.com}
     restart: unless-stopped

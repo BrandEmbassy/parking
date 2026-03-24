@@ -1,80 +1,47 @@
-import { component$, useComputed$, useVisibleTask$ } from "@builder.io/qwik";
-import {
-  routeLoader$,
-  server$,
-  type DocumentHead,
-  Link,
-} from "@builder.io/qwik-city";
-import { PollStatus } from "~/components/poll-status/poll-status";
-import {
-  useDayListPollingSignals,
-  createGlowTimer,
-  pollDayList,
-  setupPolling,
-} from "~/hooks/use-polling";
-import type { DayData } from "~/services/types";
+import { component$ } from "@builder.io/qwik";
+import { type DocumentHead, Link } from "@builder.io/qwik-city";
+import { ConnectionStatus } from "~/components/poll-status/poll-status";
+import { useSpacetimeDays } from "~/hooks/use-spacetimedb";
+import { formatDate } from "~/services/date-utils";
 
-export const useUpcomingDays = routeLoader$<DayData[]>(
-  async ({ cookie, env }) => {
-    const accessToken = cookie.get("access_token")?.value;
-    if (!accessToken) return [];
+import { useSession } from "../layout";
 
-    try {
-      const { getUpcomingDays } = await import("~/services/sheets");
-      return await getUpcomingDays(accessToken, env, 15);
-    } catch (e) {
-      console.error("Failed to load upcoming days:", e);
-      return [];
+/**
+ * Generate the next N weekday dates starting from today.
+ */
+function getUpcomingDates(count: number): string[] {
+  const dates: string[] = [];
+  const d = new Date();
+  while (dates.length < count) {
+    const day = d.getDay();
+    // Include weekdays only (1=Mon..5=Fri), skip weekends
+    if (day >= 1 && day <= 5) {
+      dates.push(formatDate(d));
     }
-  },
-);
-
-const fetchUpcomingDays = server$(async function (): Promise<DayData[]> {
-  const accessToken = this.cookie.get("access_token")?.value;
-  if (!accessToken) return [];
-
-  try {
-    const { getUpcomingDays } = await import("~/services/sheets");
-    return await getUpcomingDays(accessToken, this.env, 15);
-  } catch (e) {
-    console.error("Failed to poll upcoming days:", e);
-    return [];
+    d.setDate(d.getDate() + 1);
   }
-});
+  return dates;
+}
 
 export default component$(() => {
-  const upcoming = useUpcomingDays();
+  const session = useSession();
+  const upcomingDates = getUpcomingDates(15);
 
-  const { polledDays, lastUpdated, changedDates, secondsAgo } =
-    useDayListPollingSignals();
+  const { days, connected, error, changedDates } =
+    useSpacetimeDays(upcomingDates);
 
-  const days = useComputed$(() => polledDays.value ?? upcoming.value);
-
-  // eslint-disable-next-line qwik/no-use-visible-task
-  useVisibleTask$(({ cleanup }) => {
-    if (!upcoming.value || upcoming.value.length === 0) return;
-
-    polledDays.value = upcoming.value;
-    lastUpdated.value = Date.now();
-
-    const glowTimer = createGlowTimer();
-
-    const doPoll = async () => {
-      try {
-        await pollDayList(
-          fetchUpcomingDays,
-          { polledDays, lastUpdated, changedDates },
-          glowTimer,
-        );
-      } catch (e) {
-        console.error("Poll error:", e);
-      }
-    };
-
-    setupPolling(lastUpdated, secondsAgo, doPoll, cleanup, () => {
-      clearTimeout(glowTimer.current);
-    });
-  });
+  if (!session.value.isLoggedIn) {
+    return (
+      <div class="container">
+        <h1>Upcoming Days</h1>
+        <div class="card">
+          <p class="text-center text-muted">
+            Please sign in with Google to view upcoming parking availability.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (days.value.length === 0) {
     return (
@@ -82,7 +49,7 @@ export default component$(() => {
         <h1>Upcoming Days</h1>
         <div class="card">
           <p class="text-center text-muted">
-            Please sign in with Google to view upcoming parking availability.
+            {error.value ? `Error: ${error.value}` : "Loading parking data…"}
           </p>
         </div>
       </div>
@@ -96,9 +63,8 @@ export default component$(() => {
 
       <div class="days-list">
         {days.value.map((dayData, i) => {
-          const spots = dayData.spots.filter((s) => !s.isDivider);
-          const freeCount = spots.filter((s) => !s.occupant).length;
-          const totalSpots = spots.length;
+          const freeCount = dayData.spots.filter((s) => !s.occupant).length;
+          const totalSpots = dayData.spots.length;
           const dateEncoded = encodeURIComponent(dayData.date);
           const isToday = i === 0;
           const isChanged = changedDates.value.includes(dayData.date);
@@ -125,7 +91,7 @@ export default component$(() => {
         })}
       </div>
 
-      <PollStatus lastUpdated={lastUpdated} secondsAgo={secondsAgo} />
+      <ConnectionStatus connected={connected} error={error} />
     </div>
   );
 });

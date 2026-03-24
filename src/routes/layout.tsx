@@ -1,55 +1,17 @@
 import { component$, Slot } from "@builder.io/qwik";
-import { routeLoader$, type RequestHandler } from "@builder.io/qwik-city";
-import { refreshAccessToken, getUserInfo } from "~/services/auth";
+import { routeLoader$ } from "@builder.io/qwik-city";
 
 export interface UserSession {
   isLoggedIn: boolean;
   name: string;
-  email: string;
 }
 
-export const onRequest: RequestHandler = async ({ cookie, env, url }) => {
-  // Skip auth check for auth routes
-  if (url.pathname.startsWith("/api/auth")) return;
-
-  const accessToken = cookie.get("access_token")?.value;
-  const refreshToken = cookie.get("refresh_token")?.value;
-
-  // Try to refresh if we have a refresh token but no access token
-  if (!accessToken && refreshToken) {
-    try {
-      const newToken = await refreshAccessToken(env, refreshToken);
-      if (newToken) {
-        cookie.set("access_token", newToken, {
-          path: "/",
-          httpOnly: true,
-          sameSite: "lax",
-          maxAge: 3600,
-        });
-        // Also refresh user info
-        const user = await getUserInfo(newToken);
-        cookie.set("user_name", encodeURIComponent(user.name), {
-          path: "/",
-          httpOnly: false,
-          sameSite: "lax",
-          maxAge: 60 * 60 * 24 * 30,
-        });
-      }
-    } catch {
-      // Refresh failed, user will need to re-authenticate
-    }
-  }
-};
-
 export const useSession = routeLoader$<UserSession>(async ({ cookie }) => {
-  const accessToken = cookie.get("access_token")?.value;
   const rawName = cookie.get("user_name")?.value;
-  const rawEmail = cookie.get("user_email")?.value;
 
   return {
-    isLoggedIn: !!accessToken,
+    isLoggedIn: !!rawName,
     name: rawName ? decodeURIComponent(rawName) : "",
-    email: rawEmail ? decodeURIComponent(rawEmail) : "",
   };
 });
 

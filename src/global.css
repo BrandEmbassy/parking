@@ -101,9 +101,10 @@ a:hover {
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--color-text-muted);
-  padding: 0.25rem 0;
+  padding: 0.5rem 0.25rem;
   border-bottom: 2px solid transparent;
   transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .nav-link:hover {
@@ -144,13 +145,15 @@ a:hover {
   justify-content: center;
   font-size: 0.875rem;
   font-weight: 500;
-  padding: 0.5rem 1rem;
+  padding: 0.625rem 1.25rem;
   border-radius: var(--radius);
   border: 1px solid transparent;
   cursor: pointer;
   transition: all 0.15s;
   text-decoration: none;
   line-height: 1.25;
+  min-height: 2.75rem;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .btn:hover {
@@ -184,8 +187,20 @@ a:hover {
 }
 
 .btn-small {
-  font-size: 0.75rem;
-  padding: 0.25rem 0.5rem;
+  font-size: 0.8125rem;
+  padding: 0.5rem 0.75rem;
+  min-height: 2.5rem;
+}
+
+.btn-danger {
+  background: var(--color-danger);
+  color: #fff;
+  border-color: var(--color-danger);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #b91c1c;
+  border-color: #b91c1c;
 }
 
 /* === Today View === */
@@ -257,16 +272,52 @@ a:hover {
   color: var(--color-danger);
   font-size: 0.875rem;
   font-weight: 500;
+  animation: banner-appear 0.2s ease-out;
+}
+
+.conflict-banner p {
+  flex: 1;
+  margin: 0;
+}
+
+.conflict-dismiss {
+  background: none;
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius);
+  color: var(--color-danger);
+  cursor: pointer;
+  font-size: 0.8125rem;
+  padding: 0.5rem 0.75rem;
+  min-height: 2.25rem;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.conflict-dismiss:hover {
+  background: var(--color-danger);
+  color: #fff;
+}
+
+@keyframes banner-appear {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .spot-card {
   background: var(--color-surface);
   border: 2px solid var(--color-border);
   border-radius: var(--radius);
-  padding: 0.75rem;
+  padding: 0.875rem;
   cursor: pointer;
   transition: all 0.15s;
   box-shadow: var(--shadow);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .spot-card:hover {
@@ -307,7 +358,9 @@ a:hover {
 }
 
 .spot-occupant {
-  min-height: 1.5rem;
+  min-height: 2.5rem;
+  display: flex;
+  align-items: center;
 }
 
 .spot-available {
@@ -324,12 +377,13 @@ a:hover {
 
 .spot-input {
   width: 100%;
-  padding: 0.375rem 0.5rem;
+  padding: 0.5rem 0.625rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   outline: none;
   margin-bottom: 0.5rem;
+  min-height: 2.5rem;
 }
 
 .spot-input:focus {
@@ -339,7 +393,14 @@ a:hover {
 
 .spot-actions {
   display: flex;
-  gap: 0.375rem;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.spot-taken-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 /* === Card === */
@@ -371,12 +432,14 @@ a:hover {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  padding: 0.875rem 1rem;
+  padding: 1rem 1.125rem;
+  min-height: 3.25rem;
   cursor: pointer;
   transition: all 0.15s;
   text-decoration: none;
   color: var(--color-text);
   box-shadow: var(--shadow);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .day-row:hover {
@@ -528,6 +591,31 @@ a:hover {
 .spot-changed,
 .day-row-changed {
   animation: changed-glow 2s ease-out;
+}
+
+.spot-error {
+  border-color: var(--color-danger) !important;
+  background: #fee2e2 !important;
+  animation: error-shake 0.4s ease-out;
+}
+
+@keyframes error-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-4px);
+  }
+  40% {
+    transform: translateX(4px);
+  }
+  60% {
+    transform: translateX(-3px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
 }
 
 /* === Responsive === */
