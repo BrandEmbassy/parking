@@ -215,3 +215,27 @@ export async function quickReserve(
   const conn = await getConnection();
   await conn.reducers.quickReserve({ date, occupant });
 }
+
+/**
+ * Wait for the next data sync from SpacetimeDB subscriptions.
+ * Useful after mutations to ensure cached data reflects the change.
+ */
+export function waitForDataSync(timeoutMs = 2000): Promise<void> {
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const cleanup = { unsub: () => {} };
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      cleanup.unsub();
+      reject(new Error("Data sync timeout"));
+    }, timeoutMs);
+    cleanup.unsub = onDataChange(() => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      cleanup.unsub();
+      resolve();
+    });
+  });
+}
