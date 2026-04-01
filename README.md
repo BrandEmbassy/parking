@@ -16,12 +16,13 @@ Copy the example file and fill in your credentials:
 cp .env.example .env
 ```
 
-| Variable               | Description                    | Required |
-| ---------------------- | ------------------------------ | -------- |
-| `GOOGLE_CLIENT_ID`     | Google OAuth 2.0 Client ID     | Yes      |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth 2.0 Client Secret | Yes      |
-| `PUBLIC_SPACETIMEDB_MODULE` | Database name   | Yes      |
-| `PUBLIC_SPACETIMEDB_URI` | Database cluster   | Yes      |
+| Variable                    | Description                                  | Required |
+| --------------------------- | -------------------------------------------- | -------- |
+| `GOOGLE_CLIENT_ID`          | Google OAuth 2.0 Client ID                   | Yes      |
+| `GOOGLE_CLIENT_SECRET`      | Google OAuth 2.0 Client Secret               | Yes      |
+| `PUBLIC_SPACETIMEDB_MODULE` | Database name                                | Yes      |
+| `PUBLIC_SPACETIMEDB_URI`    | Database cluster                             | Yes      |
+| `API_KEYS`                  | Comma-separated API keys for REST API access | No       |
 
 ## Project Structure
 
@@ -87,6 +88,13 @@ docker compose down
 ```
 
 The compose file reads credentials from your `.env` file and defaults `ORIGIN` to `http://localhost:3000` if not set.
+
+## REST API
+
+A REST API (`/api/v1`) is available for AI agent and programmatic access. Authentication is via Bearer token — set the `API_KEYS` environment variable with one or more comma-separated keys.
+
+- **AI agent guidance**: [`/llms.txt`](public/llms.txt) — plain-language overview and workflow tips
+- **OpenAPI spec**: [`/openapi.json`](public/openapi.json) — machine-readable specification for tool generation
 
 ### Production Checklist
 
