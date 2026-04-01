@@ -1,0 +1,49 @@
+# Parking Reservation API
+
+> Office parking spot reservation system with REST API for AI agent access.
+
+## Overview
+
+This is a web app for reserving office parking spots. The REST API (v1) allows AI agents and scripts to check availability, make reservations, and cancel them programmatically.
+
+All API endpoints require authentication via a Bearer token in the `Authorization` header.
+
+## Authentication
+
+Include your API key in every request:
+
+    Authorization: Bearer <your-api-key>
+
+Keys are provisioned by the server administrator via the `API_KEYS` environment variable.
+
+## API Base URL
+
+    /api/v1
+
+## Typical Workflow
+
+1. **Check availability**: `GET /api/v1/spots?date=2025-06-15` to see which spots are free.
+2. **Reserve a spot**: Either pick a specific spot with `POST /api/v1/reservations`, or let the system auto-assign one with `POST /api/v1/reservations/quick`.
+3. **Cancel if needed**: `DELETE /api/v1/reservations` with the same spotId, date, and occupant.
+
+## Endpoints
+
+- `GET /api/v1/spots?date=YYYY-MM-DD` — List all spots with availability status for a date.
+- `GET /api/v1/reservations?date=YYYY-MM-DD` — List all reservations for a date.
+- `POST /api/v1/reservations` — Reserve a specific spot. Body: `{ "spotId": 1, "date": "YYYY-MM-DD", "occupant": "Name" }`.
+- `DELETE /api/v1/reservations` — Cancel a reservation. Body: same as POST.
+- `POST /api/v1/reservations/quick` — Auto-assign the first available spot. Body: `{ "date": "YYYY-MM-DD", "occupant": "Name" }`.
+
+## Tips
+
+- Use the **quick reserve** endpoint when you don't need a specific spot — it's simpler and avoids conflicts.
+- Dates must be in **YYYY-MM-DD** format (e.g. `2025-06-15`).
+- The **occupant** field is typically a person's name. Whitespace is trimmed.
+- A **409 Conflict** response means a business logic issue: spot already taken, no free spots, or occupant mismatch on cancel.
+- The `spotId` and `spotName` in the quick reserve response may be `null` if the server couldn't confirm the assignment in time — the reservation still succeeded.
+
+## API Specification
+
+For the full machine-readable API spec (request/response schemas, error codes):
+
+> [OpenAPI Specification](/openapi.json)
