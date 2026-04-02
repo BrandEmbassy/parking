@@ -68,16 +68,25 @@ export default component$(() => {
           const dateEncoded = encodeURIComponent(dayData.date);
           const isToday = i === 0;
           const isChanged = changedDates.value.includes(dayData.date);
+          const mySpot = dayData.spots.find(
+            (s) =>
+              s.occupant &&
+              s.occupant.toLowerCase() ===
+                session.value.name.toLowerCase(),
+          );
 
           return (
             <Link
               key={dayData.date}
               href={isToday ? "/" : `/day/${dateEncoded}`}
-              class={`day-row ${freeCount === 0 ? "day-full" : ""} ${isToday ? "day-today" : ""} ${isChanged ? "day-row-changed" : ""}`}
+              class={`day-row ${freeCount === 0 ? "day-full" : ""} ${isToday ? "day-today" : ""} ${isChanged ? "day-row-changed" : ""} ${mySpot ? "day-mine" : ""}`}
             >
               <div class="day-info">
                 <span class="day-date">{dayData.date}</span>
                 <span class="day-name">{dayData.day}</span>
+                {mySpot && (
+                  <span class="day-my-spot">Spot {mySpot.name}</span>
+                )}
               </div>
               <div class="day-availability">
                 <span

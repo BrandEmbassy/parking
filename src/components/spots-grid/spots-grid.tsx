@@ -3,6 +3,7 @@ import type { SpotData, ReserveResult } from "~/services/types";
 
 interface SpotsGridProps {
   spots: SpotData[];
+  userName?: string;
   editingSpot?: Signal<number | null>;
   changedSpots?: Signal<number[]>;
   reserveResult?: Signal<ReserveResult | null>;
@@ -19,9 +20,13 @@ export const SpotsGrid = component$<SpotsGridProps>((props) => {
 
   const result = props.reserveResult?.value;
   const hasError = result && !result.success;
+  const allTaken = props.spots.length > 0 && props.spots.every((s) => s.occupant);
 
   return (
     <div class="spots-grid">
+      {allTaken && (
+        <div class="fully-booked-banner">All spots are taken</div>
+      )}
       {hasError && (
         <div class="conflict-banner">
           <p>{result.error}</p>
@@ -45,11 +50,15 @@ export const SpotsGrid = component$<SpotsGridProps>((props) => {
           spot.spotId,
         );
         const isFailed = hasError && result.failedSpotId === spot.spotId;
+        const isMine =
+          !isFree &&
+          props.userName &&
+          spot.occupant.toLowerCase() === props.userName.toLowerCase();
 
         return (
           <div
             key={spot.spotId}
-            class={`spot-card ${isFree ? "spot-free" : "spot-taken"} ${isEditing ? "spot-editing" : ""} ${isChanged ? "spot-changed" : ""} ${isFailed ? "spot-error" : ""}`}
+            class={`spot-card ${isFree ? "spot-free" : isMine ? "spot-mine" : "spot-taken"} ${isEditing ? "spot-editing" : ""} ${isChanged ? "spot-changed" : ""} ${isFailed ? "spot-error" : ""}`}
           >
             <div class="spot-name">{spot.name}</div>
 
@@ -126,7 +135,7 @@ export const SpotsGrid = component$<SpotsGridProps>((props) => {
                 class="spot-occupant"
                 onClick$={() => {
                   editingSpot.value = spot.spotId;
-                  editValue.value = "";
+                  editValue.value = isFree ? (props.userName ?? "") : "";
                 }}
               >
                 {isFree ? (

@@ -34,6 +34,14 @@ export default component$(() => {
     () => spots.value.filter((s) => !s.occupant).length,
   );
 
+  const mySpot = useComputed$(() =>
+    spots.value.find(
+      (s) =>
+        s.occupant &&
+        s.occupant.toLowerCase() === session.value.name.toLowerCase(),
+    ),
+  );
+
   // Quick reserve state
   const quickReserveResult = useSignal<ReserveResult | null>(null);
   const quickReserveRunning = useSignal(false);
@@ -98,7 +106,9 @@ export default component$(() => {
     <div class="container">
       <div class="today-header">
         <div class="stats">
-          <span class="stat-badge">
+          <span
+            class={`stat-badge ${freeCount.value === 0 ? "stat-badge-full" : freeCount.value <= 3 ? "stat-badge-low" : "stat-badge-available"}`}
+          >
             {freeCount.value} / {spots.value.length} spots free
           </span>
         </div>
@@ -107,6 +117,12 @@ export default component$(() => {
           {dayName}, {dateStr}
         </p>
       </div>
+
+      {mySpot.value && (
+        <div class="my-reservation-banner">
+          You have spot <strong>{mySpot.value.name}</strong> today
+        </div>
+      )}
 
       <div class="actions-bar">
         <button
@@ -143,6 +159,7 @@ export default component$(() => {
 
       <SpotsGrid
         spots={data.value.spots}
+        userName={session.value.name}
         changedSpots={changedSpots}
         editingSpot={editingSpot}
         reserveResult={reserveResult}

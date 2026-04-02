@@ -38,7 +38,7 @@ export default component$(() => {
       <div class="container">
         <div class="today-header">
           <a href="/future" class="back-link">
-            Back to upcoming
+            &larr; Upcoming
           </a>
           <h1>Day Detail</h1>
         </div>
@@ -56,7 +56,7 @@ export default component$(() => {
       <div class="container">
         <div class="today-header">
           <a href="/future" class="back-link">
-            Back to upcoming
+            &larr; Upcoming
           </a>
           <h1>Day Detail</h1>
         </div>
@@ -73,10 +73,15 @@ export default component$(() => {
     <div class="container">
       <div class="today-header">
         <div class="stats">
-          <span class="stat-badge">
+          <span
+            class={`stat-badge ${freeCount.value === 0 ? "stat-badge-full" : freeCount.value <= 3 ? "stat-badge-low" : "stat-badge-available"}`}
+          >
             {freeCount.value} / {spots.value.length} spots free
           </span>
         </div>
+        <a href="/future" class="back-link">
+          &larr; Upcoming
+        </a>
         <h1>{data.value.day}</h1>
         <p class="date-display">{data.value.date}</p>
       </div>
@@ -116,6 +121,7 @@ export default component$(() => {
 
       <SpotsGrid
         spots={data.value.spots}
+        userName={session.value.name}
         changedSpots={changedSpots}
         editingSpot={editingSpot}
         reserveResult={reserveResult}

@@ -9,7 +9,8 @@ export const ConnectionStatus = component$<ConnectionStatusProps>((props) => {
   if (props.error?.value) {
     return (
       <div class="poll-status">
-        <span class="last-updated" style="color: var(--color-danger, #dc3545)">
+        <span class="status-dot status-dot-error" />
+        <span class="last-updated" style="color: var(--color-danger)">
           Disconnected: {props.error.value}
         </span>
       </div>
@@ -18,8 +19,11 @@ export const ConnectionStatus = component$<ConnectionStatusProps>((props) => {
 
   return (
     <div class="poll-status">
+      <span
+        class={`status-dot ${props.connected.value ? "status-dot-ok" : "status-dot-connecting"}`}
+      />
       <span class="last-updated">
-        {props.connected.value ? "Connected — real-time" : "Connecting…"}
+        {props.connected.value ? "Connected" : "Connecting\u2026"}
       </span>
     </div>
   );
