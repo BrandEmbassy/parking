@@ -26,6 +26,14 @@ RUN npm ci --omit=dev
 # Build the application
 FROM deps AS build
 
+# SpacetimeDB connection config is baked into the client bundle at build time
+# (Vite resolves PUBLIC_* vars during `npm run build`), so it must be provided
+# here rather than only at runtime. Overridable via --build-arg.
+ARG PUBLIC_SPACETIMEDB_URI=wss://maincloud.spacetimedb.com
+ARG PUBLIC_SPACETIMEDB_MODULE
+ENV PUBLIC_SPACETIMEDB_URI=$PUBLIC_SPACETIMEDB_URI \
+    PUBLIC_SPACETIMEDB_MODULE=$PUBLIC_SPACETIMEDB_MODULE
+
 COPY . .
 
 RUN npm run build
