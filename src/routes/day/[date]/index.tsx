@@ -9,6 +9,7 @@ import {
   cancelReservation,
   quickReserve,
 } from "~/services/spacetimedb";
+import { parseDate, addDays, formatDate } from "~/services/date-utils";
 
 import { useSession } from "../../layout";
 
@@ -16,6 +17,10 @@ export default component$(() => {
   const session = useSession();
   const location = useLocation();
   const dateStr = decodeURIComponent(location.params.date);
+
+  const currentDate = parseDate(dateStr);
+  const prevUrl = `/day/${formatDate(addDays(currentDate, -1))}`;
+  const nextUrl = `/day/${formatDate(addDays(currentDate, 1))}`;
 
   const { data, connected, error, changedSpots } = useSpacetimeDay(dateStr);
 
@@ -36,6 +41,12 @@ export default component$(() => {
   if (!session.value.isLoggedIn) {
     return (
       <div class="container">
+        <a href={prevUrl} class="day-nav-prev" aria-label="Previous day">
+          ‹
+        </a>
+        <a href={nextUrl} class="day-nav-next" aria-label="Next day">
+          ›
+        </a>
         <div class="today-header">
           <a href="/future" class="back-link">
             &larr; Upcoming
@@ -54,6 +65,12 @@ export default component$(() => {
   if (!data.value) {
     return (
       <div class="container">
+        <a href={prevUrl} class="day-nav-prev" aria-label="Previous day">
+          ‹
+        </a>
+        <a href={nextUrl} class="day-nav-next" aria-label="Next day">
+          ›
+        </a>
         <div class="today-header">
           <a href="/future" class="back-link">
             &larr; Upcoming
@@ -71,6 +88,12 @@ export default component$(() => {
 
   return (
     <div class="container">
+      <a href={prevUrl} class="day-nav-prev" aria-label="Previous day">
+        ‹
+      </a>
+      <a href={nextUrl} class="day-nav-next" aria-label="Next day">
+        ›
+      </a>
       <div class="today-header">
         <div class="stats">
           <span

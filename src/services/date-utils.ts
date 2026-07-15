@@ -24,3 +24,20 @@ export function formatDateDisplay(date: Date): string {
 export function getDayName(date: Date): string {
   return date.toLocaleDateString("en-US", { weekday: "long" });
 }
+
+/**
+ * Parse a YYYY-MM-DD date string into a local Date object.
+ */
+export function parseDate(dateStr: string): Date {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+/**
+ * Return a new Date offset by the given number of days.
+ */
+export function addDays(date: Date, days: number): Date {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+}
