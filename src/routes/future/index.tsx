@@ -1,8 +1,10 @@
-import { component$ } from "@builder.io/qwik";
+import { component$, useSignal } from "@builder.io/qwik";
 import { type DocumentHead, Link } from "@builder.io/qwik-city";
 import { ConnectionStatus } from "~/components/poll-status/poll-status";
 import { useSpacetimeDays } from "~/hooks/use-spacetimedb";
 import { formatDate } from "~/services/date-utils";
+import { quickReserve } from "~/services/spacetimedb";
+import type { DayData, ReserveResult } from "~/services/types";
 
 import { useSession } from "../layout";
 
@@ -22,6 +24,93 @@ function getUpcomingDates(count: number): string[] {
   }
   return dates;
 }
+
+interface DayRowProps {
+  dayData: DayData;
+  userName: string;
+  isToday: boolean;
+  isChanged: boolean;
+}
+
+const DayRow = component$<DayRowProps>(
+  ({ dayData, userName, isToday, isChanged }) => {
+    const freeCount = dayData.spots.filter((s) => !s.occupant).length;
+    const totalSpots = dayData.spots.length;
+    const dateEncoded = encodeURIComponent(dayData.date);
+    const mySpot = dayData.spots.find(
+      (s) => s.occupant && s.occupant.toLowerCase() === userName.toLowerCase(),
+    );
+
+    const quickReserveRunning = useSignal(false);
+    const quickReserveResult = useSignal<ReserveResult | null>(null);
+
+    const showQuickReserve = !mySpot && freeCount > 0;
+
+    return (
+      <div
+        class={`day-row ${freeCount === 0 ? "day-full" : ""} ${isToday ? "day-today" : ""} ${isChanged ? "day-row-changed" : ""} ${mySpot ? "day-mine" : ""}`}
+      >
+        <Link
+          href={isToday ? "/" : `/day/${dateEncoded}`}
+          class="day-row-link"
+        >
+          <div class="day-info">
+            <span class="day-date">{dayData.date}</span>
+            <span class="day-name">{dayData.day}</span>
+            {mySpot && <span class="day-my-spot">Spot {mySpot.name}</span>}
+          </div>
+          <div class="day-availability">
+            <span
+              class={`availability-badge ${freeCount === 0 ? "badge-full" : freeCount <= 3 ? "badge-low" : "badge-available"}`}
+            >
+              {freeCount} / {totalSpots} free
+            </span>
+          </div>
+        </Link>
+
+        {showQuickReserve && (
+          <div class="day-row-actions">
+            {quickReserveResult.value?.success ? (
+              <span class="success-msg">Reserved!</span>
+            ) : (
+              <>
+                {quickReserveResult.value && (
+                  <span class="error-msg">
+                    {quickReserveResult.value.error}
+                  </span>
+                )}
+                <button
+                  type="button"
+                  class="btn btn-primary btn-small"
+                  disabled={quickReserveRunning.value}
+                  onClick$={async () => {
+                    quickReserveResult.value = null;
+                    quickReserveRunning.value = true;
+                    try {
+                      await quickReserve(dayData.date, userName);
+                      quickReserveResult.value = { success: true };
+                    } catch (err) {
+                      quickReserveResult.value = {
+                        success: false,
+                        error:
+                          err instanceof Error
+                            ? err.message
+                            : "Quick reserve failed",
+                      };
+                    }
+                    quickReserveRunning.value = false;
+                  }}
+                >
+                  {quickReserveRunning.value ? "Reserving…" : "Quick Reserve"}
+                </button>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  },
+);
 
 export default component$(() => {
   const session = useSession();
@@ -62,42 +151,15 @@ export default component$(() => {
       <p class="subtitle">Next 14 days parking availability</p>
 
       <div class="days-list">
-        {days.value.map((dayData, i) => {
-          const freeCount = dayData.spots.filter((s) => !s.occupant).length;
-          const totalSpots = dayData.spots.length;
-          const dateEncoded = encodeURIComponent(dayData.date);
-          const isToday = i === 0;
-          const isChanged = changedDates.value.includes(dayData.date);
-          const mySpot = dayData.spots.find(
-            (s) =>
-              s.occupant &&
-              s.occupant.toLowerCase() ===
-                session.value.name.toLowerCase(),
-          );
-
-          return (
-            <Link
-              key={dayData.date}
-              href={isToday ? "/" : `/day/${dateEncoded}`}
-              class={`day-row ${freeCount === 0 ? "day-full" : ""} ${isToday ? "day-today" : ""} ${isChanged ? "day-row-changed" : ""} ${mySpot ? "day-mine" : ""}`}
-            >
-              <div class="day-info">
-                <span class="day-date">{dayData.date}</span>
-                <span class="day-name">{dayData.day}</span>
-                {mySpot && (
-                  <span class="day-my-spot">Spot {mySpot.name}</span>
-                )}
-              </div>
-              <div class="day-availability">
-                <span
-                  class={`availability-badge ${freeCount === 0 ? "badge-full" : freeCount <= 3 ? "badge-low" : "badge-available"}`}
-                >
-                  {freeCount} / {totalSpots} free
-                </span>
-              </div>
-            </Link>
-          );
-        })}
+        {days.value.map((dayData, i) => (
+          <DayRow
+            key={dayData.date}
+            dayData={dayData}
+            userName={session.value.name}
+            isToday={i === 0}
+            isChanged={changedDates.value.includes(dayData.date)}
+          />
+        ))}
       </div>
 
       <ConnectionStatus connected={connected} error={error} />
