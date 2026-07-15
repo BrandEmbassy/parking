@@ -512,7 +512,7 @@ a:hover {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0 1rem 0 0.5rem;
+  padding: 0 0.5rem;
   flex-shrink: 0;
 }
 
