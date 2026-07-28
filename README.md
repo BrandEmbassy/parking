@@ -35,9 +35,38 @@ cp .env.example .env
 │   ├── plugins/         Fastify server plugin
 │   ├── entry.ssr.tsx    SSR entry point
 │   └── entry.fastify.tsx  Production server entry point
-└── adapters/
-    └── fastify/         Fastify adapter Vite config
+├── adapters/
+│   └── fastify/         Fastify adapter Vite config
+└── scripts/             One-off maintenance scripts
 ```
+
+## Importing the legacy spreadsheet
+
+Before SpacetimeDB the reservations lived in a Google Spreadsheet with one tab
+per year. `scripts/migrate-from-sheet.mjs` imports a year of that spreadsheet
+into the database, treating the spreadsheet as the source of truth — it
+**overwrites** the spots and every reservation on the dates the sheet covers.
+
+```shell
+node scripts/migrate-from-sheet.mjs --year 2026           # dry run: report only
+node scripts/migrate-from-sheet.mjs --year 2026 --apply   # write to the database
+node scripts/migrate-from-sheet.mjs --help                # all flags
+```
+
+Requires the [`spacetime` CLI](https://spacetimedb.com/install), logged in
+(`spacetime login`). Run the dry run first — it prints the spot list, date range
+and reservation count it parsed, plus any rows it could not make sense of.
+
+What it does **not** touch: reservations on dates outside the sheet (pass
+`--wipe` to clear those too), and spots the sheet no longer lists (pass
+`--remove-missing-spots` to delete those and all of their reservations).
+
+The reducers the script calls are restricted to the identities listed in
+`ADMIN_IDENTITIES` in `spacetimedb/src/index.ts` — reducers are callable by any
+client that can reach the module, so a "delete every reservation" reducer cannot
+be left open. If a call is rejected, the error names the calling identity; add it
+there and re-publish. These reducers exist only for this import and can be
+deleted once it is done.
 
 ## Development
 

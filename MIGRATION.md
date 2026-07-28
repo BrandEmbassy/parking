@@ -313,20 +313,37 @@ SPACETIMEDB_URI=wss://maincloud.spacetimedb.com
 
 **Modify:** `docker-compose.yml` — add SpacetimeDB-related env vars. No new containers needed since SpacetimeDB is hosted on their cloud.
 
-### 4.4 Manual Data Migration
+### 4.4 Data Migration
 
-Since data will be migrated manually:
-
-1. Export current spreadsheet's header row to get the list of spot names
-2. Call `seedSpots` reducer via SpacetimeDB CLI or a one-time script to populate spot definitions
-3. Optionally import existing reservations for future dates via a bulk reducer
-4. Past reservation data does not need to be migrated (it's historical)
-
-**Example via CLI:**
+Done by `scripts/migrate-from-sheet.mjs`. The spreadsheet is the source of
+truth, so the import overrides what is already in the database.
 
 ```bash
-spacetime call nice-parking seedSpots '{"names": ["A1", "A2", "A3", "B1", "B2"]}'
+node scripts/migrate-from-sheet.mjs --year 2026            # dry run, prints what would change
+node scripts/migrate-from-sheet.mjs --year 2026 --apply    # write it
 ```
+
+The script reads one year tab of the old spreadsheet over its CSV export
+endpoint (no OAuth needed — the app no longer holds a Sheets scope), derives the
+spot list from the header row, and imports every non-empty cell as a
+reservation. It relies on three reducers added for this purpose:
+
+| Reducer              | Purpose                                                                        |
+| -------------------- | ------------------------------------------------------------------------------ |
+| `importSpots`        | Add/update the sheet's spots, keeping the id of every spot that keeps its name |
+| `clearReservations`  | Delete reservations, either on the dates the sheet covers or all of them       |
+| `importReservations` | Bulk-insert reservations addressed by spot name, in batches                    |
+
+All three are gated on `ADMIN_IDENTITIES` in `spacetimedb/src/index.ts`.
+Reducers are callable by any client that can reach the module and the web app
+connects anonymously, so a "delete every reservation" reducer cannot be left
+open. Delete these reducers once the import is done.
+
+Because `importSpots` preserves ids, re-running the migration does not
+invalidate spot ids the running app is already using. Reservations outside the
+imported dates, and spots the sheet no longer lists, are left alone unless
+`--wipe` / `--remove-missing-spots` are passed. See the script's header comment
+for the full set of flags.
 
 ### 4.5 Update UI Copy
 

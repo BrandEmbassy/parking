@@ -7,11 +7,17 @@ import { type Infer as __Infer } from "spacetimedb";
 
 // Import all reducer arg schemas
 import CancelReservationReducer from "../cancel_reservation_reducer";
+import ClearReservationsReducer from "../clear_reservations_reducer";
+import ImportReservationsReducer from "../import_reservations_reducer";
+import ImportSpotsReducer from "../import_spots_reducer";
 import QuickReserveReducer from "../quick_reserve_reducer";
 import ReserveSpotReducer from "../reserve_spot_reducer";
 import SeedSpotsReducer from "../seed_spots_reducer";
 
 export type CancelReservationParams = __Infer<typeof CancelReservationReducer>;
+export type ClearReservationsParams = __Infer<typeof ClearReservationsReducer>;
+export type ImportReservationsParams = __Infer<typeof ImportReservationsReducer>;
+export type ImportSpotsParams = __Infer<typeof ImportSpotsReducer>;
 export type QuickReserveParams = __Infer<typeof QuickReserveReducer>;
 export type ReserveSpotParams = __Infer<typeof ReserveSpotReducer>;
 export type SeedSpotsParams = __Infer<typeof SeedSpotsReducer>;

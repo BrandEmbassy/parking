@@ -35,6 +35,9 @@ import {
 
 // Import all reducer arg schemas
 import CancelReservationReducer from "./cancel_reservation_reducer";
+import ClearReservationsReducer from "./clear_reservations_reducer";
+import ImportReservationsReducer from "./import_reservations_reducer";
+import ImportSpotsReducer from "./import_spots_reducer";
 import QuickReserveReducer from "./quick_reserve_reducer";
 import ReserveSpotReducer from "./reserve_spot_reducer";
 import SeedSpotsReducer from "./seed_spots_reducer";
@@ -86,6 +89,9 @@ const tablesSchema = __schema({
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
 const reducersSchema = __reducers(
   __reducerSchema("cancel_reservation", CancelReservationReducer),
+  __reducerSchema("clear_reservations", ClearReservationsReducer),
+  __reducerSchema("import_reservations", ImportReservationsReducer),
+  __reducerSchema("import_spots", ImportSpotsReducer),
   __reducerSchema("quick_reserve", QuickReserveReducer),
   __reducerSchema("reserve_spot", ReserveSpotReducer),
   __reducerSchema("seed_spots", SeedSpotsReducer),
