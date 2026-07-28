@@ -39,8 +39,14 @@ const execFileAsync = promisify(execFile);
 // Configuration
 // ---------------------------------------------------------------------------
 
-/** The legacy spreadsheet. Was `GOOGLE_SHEET_ID` before the SpacetimeDB migration. */
-const SHEET_ID = "1iBTebUuupU9v9FFKdmU5ULozFy_enTDsKNxmRzLYiPk";
+/**
+ * The legacy spreadsheet — the live one people actually filled in.
+ *
+ * Note this is NOT the id that `GOOGLE_SHEET_ID` held in .env.example before
+ * the SpacetimeDB migration (1iBTeb…LYiPk): that one is a testing copy with
+ * different data. Override with --sheet if in doubt.
+ */
+const SHEET_ID = "1I5l756j-dAS09jsFJIcCY92QaWqus5bNwNJat7WPF1o";
 
 /**
  * Spreadsheet columns to leave out of the database, by spot code.
@@ -64,6 +70,7 @@ function parseArgs(argv) {
     wipe: false,
     removeMissingSpots: false,
     csv: null,
+    sheet: SHEET_ID,
     module: process.env.PUBLIC_SPACETIMEDB_MODULE || "nice-parking",
     server: null,
   };
@@ -94,6 +101,9 @@ function parseArgs(argv) {
         break;
       case "--csv":
         opts.csv = value(arg, argv[++i]);
+        break;
+      case "--sheet":
+        opts.sheet = value(arg, argv[++i]);
         break;
       case "--module":
         opts.module = value(arg, argv[++i]);
@@ -510,6 +520,7 @@ const USAGE = `Migrate the legacy Google Spreadsheet into SpacetimeDB.
 
   --year <YYYY>    Sheet tab to import (default: current year)
   --csv <path>     Read a downloaded CSV export instead of fetching the sheet
+  --sheet <id>     Spreadsheet id to read (default: the live parking sheet)
   --apply          Write to the database (without this it is a dry run)
   --wipe           Delete every existing reservation, not just those on
                    dates the sheet covers
@@ -529,12 +540,12 @@ async function main() {
 
   const source = opts.csv
     ? `CSV file ${opts.csv}`
-    : `spreadsheet ${SHEET_ID}, tab "${opts.year}"`;
+    : `spreadsheet ${opts.sheet}, tab "${opts.year}"`;
   console.log(`Reading ${source}`);
 
   const csv = opts.csv
     ? await readFile(opts.csv, "utf8")
-    : await fetchSheetCsv(SHEET_ID, opts.year);
+    : await fetchSheetCsv(opts.sheet, opts.year);
 
   const { spots, ignored, dates, entries, warnings } = extractData(
     parseCsv(csv),
