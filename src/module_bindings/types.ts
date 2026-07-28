@@ -10,6 +10,13 @@ import {
   type Infer as __Infer,
 } from "spacetimedb";
 
+export const ImportEntry = __t.object("ImportEntry", {
+  spotName: __t.string(),
+  date: __t.string(),
+  occupant: __t.string(),
+});
+export type ImportEntry = __Infer<typeof ImportEntry>;
+
 export const Reservation = __t.object("Reservation", {
   id: __t.u64(),
   spotId: __t.u32(),
