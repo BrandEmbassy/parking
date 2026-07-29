@@ -554,11 +554,16 @@ a:hover {
   font-size: 0.875rem;
 }
 
+.day-availability {
+  flex-shrink: 0;
+}
+
 .availability-badge {
   font-size: 0.75rem;
   font-weight: 600;
   padding: 0.25rem 0.75rem;
   border-radius: 999px;
+  white-space: nowrap;
 }
 
 .badge-available {
