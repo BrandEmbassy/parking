@@ -59,6 +59,14 @@ export const SpotsGrid = component$<SpotsGridProps>((props) => {
           <div
             key={spot.spotId}
             class={`spot-card ${isFree ? "spot-free" : isMine ? "spot-mine" : "spot-taken"} ${isEditing ? "spot-editing" : ""} ${isChanged ? "spot-changed" : ""} ${isFailed ? "spot-error" : ""}`}
+            onClick$={
+              !isEditing
+                ? () => {
+                    editingSpot.value = spot.spotId;
+                    editValue.value = isFree ? (props.userName ?? "") : "";
+                  }
+                : undefined
+            }
           >
             <div class="spot-name">{spot.name}</div>
 
@@ -131,13 +139,7 @@ export const SpotsGrid = component$<SpotsGridProps>((props) => {
                 </div>
               )
             ) : (
-              <div
-                class="spot-occupant"
-                onClick$={() => {
-                  editingSpot.value = spot.spotId;
-                  editValue.value = isFree ? (props.userName ?? "") : "";
-                }}
-              >
+              <div class="spot-occupant">
                 {isFree ? (
                   <span class="spot-available">Available</span>
                 ) : (
