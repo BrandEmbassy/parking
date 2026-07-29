@@ -59,6 +59,10 @@ export const SpotsGrid = component$<SpotsGridProps>((props) => {
           <div
             key={spot.spotId}
             class={`spot-card ${isFree ? "spot-free" : isMine ? "spot-mine" : "spot-taken"} ${isEditing ? "spot-editing" : ""} ${isChanged ? "spot-changed" : ""} ${isFailed ? "spot-error" : ""}`}
+            onClick$={() => {
+              editingSpot.value = spot.spotId;
+              editValue.value = isFree ? (props.userName ?? "") : "";
+            }}
           >
             <div class="spot-name">{spot.name}</div>
 
@@ -67,6 +71,7 @@ export const SpotsGrid = component$<SpotsGridProps>((props) => {
                 // Free spot — show input to reserve
                 <form
                   preventdefault:submit
+                  onClick$={(e) => e.stopPropagation()}
                   onSubmit$={() => {
                     const spotId = spot.spotId;
                     const value = editValue.value;
@@ -102,7 +107,10 @@ export const SpotsGrid = component$<SpotsGridProps>((props) => {
                 </form>
               ) : (
                 // Taken spot — show occupant + clear action
-                <div class="spot-taken-edit">
+                <div
+                  class="spot-taken-edit"
+                  onClick$={(e) => e.stopPropagation()}
+                >
                   <span class="spot-reserved">{spot.occupant}</span>
                   <div class="spot-actions">
                     <button
@@ -131,13 +139,7 @@ export const SpotsGrid = component$<SpotsGridProps>((props) => {
                 </div>
               )
             ) : (
-              <div
-                class="spot-occupant"
-                onClick$={() => {
-                  editingSpot.value = spot.spotId;
-                  editValue.value = isFree ? (props.userName ?? "") : "";
-                }}
-              >
+              <div class="spot-occupant">
                 {isFree ? (
                   <span class="spot-available">Available</span>
                 ) : (
