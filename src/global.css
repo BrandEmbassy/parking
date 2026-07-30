@@ -799,3 +799,201 @@ a:hover {
     display: none;
   }
 }
+
+/* === Parking Scene (issue #17) === */
+.parking-scene {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.parking-scene__stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1584 / 672;
+  background: url("/parking-bg.png") center / 100% 100% no-repeat;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.parking-scene__defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.bay {
+  position: absolute;
+}
+
+/* Free bay: dashed marker with a "Park here" pill */
+.bay__free {
+  position: absolute;
+  inset: 12% 4% 0 4%;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 2px dashed rgba(255, 255, 255, 0.92);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.34);
+  cursor: pointer;
+  transition:
+    background 160ms cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 160ms cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bay__free:hover {
+  background: rgba(37, 99, 235, 0.32);
+  border-color: var(--color-primary);
+}
+
+.bay__pill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--color-primary);
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 15px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.28);
+  white-space: nowrap;
+}
+
+/* Occupied bay: the parked car */
+.bay__car {
+  position: absolute;
+  inset: 0;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.28));
+  cursor: default;
+}
+
+.bay__car--mine {
+  cursor: pointer;
+}
+
+.bay__car svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Name chip under the car */
+.bay__chip {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 3px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px 2px 2px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--color-text);
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 15px;
+  white-space: nowrap;
+  z-index: 3;
+}
+
+.bay__chip--mine {
+  background: var(--color-primary);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.55);
+}
+
+.bay__avatar {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex: none;
+  font-weight: 700;
+  font-size: 8px;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  background: var(--color-taken);
+  color: var(--color-text-muted);
+}
+
+.bay__chip--mine .bay__avatar {
+  background: rgba(255, 255, 255, 0.28);
+  color: #fff;
+}
+
+/* Real-time change + conflict animations */
+.bay--changed .bay__car {
+  animation: carIn 480ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+
+.bay--changed .bay__chip {
+  animation: chipIn 480ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+
+.bay--error .bay__car {
+  animation: bay-shake 0.4s ease;
+}
+
+@keyframes carIn {
+  from {
+    opacity: 0;
+    transform: translateY(-18px) scale(0.93);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes chipIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 6px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes bay-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+/* Fallback strip for spots the scene art has no slot for */
+.parking-scene__fallback-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin: 0.25rem 0;
+}
+
+.parking-scene__fallback .spot-card {
+  font: inherit;
+  text-align: left;
+  width: 100%;
+}
+
+.parking-scene__fallback .spot-card:disabled {
+  cursor: default;
+  opacity: 0.85;
+}
