@@ -1,7 +1,7 @@
 import { component$, useComputed$, useSignal } from "@builder.io/qwik";
 import { type DocumentHead, useLocation } from "@builder.io/qwik-city";
 import { ConnectionStatus } from "~/components/poll-status/poll-status";
-import { SpotsGrid } from "~/components/spots-grid/spots-grid";
+import { ParkingScene } from "~/components/parking-scene/parking-scene";
 import { useSpacetimeDay } from "~/hooks/use-spacetimedb";
 import type { ReserveResult } from "~/services/types";
 import {
@@ -142,7 +142,7 @@ export default component$(() => {
         )}
       </div>
 
-      <SpotsGrid
+      <ParkingScene
         spots={data.value.spots}
         userName={session.value.name}
         changedSpots={changedSpots}
