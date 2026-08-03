@@ -1,5 +1,5 @@
 import type { RequestHandler } from "@builder.io/qwik-city";
-import { PROVIDERS } from "~/services/auth";
+import { PROVIDERS, type OAuthUser } from "~/services/auth";
 import { parseState, STATE_COOKIE_NAME } from "~/services/oauth-state";
 
 export const onGet: RequestHandler = async ({
@@ -22,19 +22,29 @@ export const onGet: RequestHandler = async ({
   }
 
   const provider = PROVIDERS[providerId];
-  const tokens = await provider.getTokensFromCode(env, code);
-  if (!tokens.access_token) {
+
+  let accessToken: string | undefined;
+  let user: OAuthUser | null = null;
+  try {
+    accessToken = (await provider.getTokensFromCode(env, code)).access_token;
+    if (accessToken) {
+      // Also checks the provider allows this account to use the app
+      user = await provider.getUserInfo(env, accessToken);
+    }
+  } catch {
+    // The provider could not answer — not the same as a rejected account
     throw redirect(302, "/?error=auth_failed");
   }
 
-  // Get user info and check the provider allows this account to use the app
-  const user = await provider.getUserInfo(env, tokens.access_token);
+  if (!accessToken) {
+    throw redirect(302, "/?error=auth_failed");
+  }
   if (!user) {
     throw redirect(302, "/?error=not_authorized");
   }
 
   // Short-lived access token (used only to fetch user name at login)
-  cookie.set("access_token", tokens.access_token, {
+  cookie.set("access_token", accessToken, {
     path: "/",
     httpOnly: true,
     sameSite: "lax",

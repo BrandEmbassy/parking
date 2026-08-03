@@ -12,9 +12,15 @@ export interface OAuthUser {
 export interface OAuthProvider {
   id: ProviderId;
   label: string;
+  /** False when the credentials for this provider are not set up on the server. */
+  isConfigured(env: Env): boolean;
   getAuthUrl(env: Env, state: string): string;
   getTokensFromCode(env: Env, code: string): Promise<{ access_token?: string }>;
-  /** Resolves to null when the account exists but is not allowed to use the app. */
+  /**
+   * Resolves to null when the account exists but is not allowed to use the app.
+   * Throws when the provider itself could not answer, so that a GitHub outage is
+   * not reported to the user as "you are not a member".
+   */
   getUserInfo(env: Env, accessToken: string): Promise<OAuthUser | null>;
 }
 
@@ -26,6 +32,10 @@ const GITHUB_USER_AGENT = "nice-prague-parking";
 const google: OAuthProvider = {
   id: "google",
   label: "Google",
+
+  isConfigured(env) {
+    return !!env.get("GOOGLE_CLIENT_ID") && !!env.get("GOOGLE_CLIENT_SECRET");
+  },
 
   getAuthUrl(env, state) {
     const params = new URLSearchParams({
@@ -74,6 +84,10 @@ const github: OAuthProvider = {
   id: "github",
   label: "GitHub",
 
+  isConfigured(env) {
+    return !!env.get("GITHUB_CLIENT_ID") && !!env.get("GITHUB_CLIENT_SECRET");
+  },
+
   getAuthUrl(env, state) {
     const params = new URLSearchParams({
       client_id: env.get("GITHUB_CLIENT_ID")!,
@@ -119,8 +133,14 @@ const github: OAuthProvider = {
       `https://api.github.com/user/memberships/orgs/${org}`,
       { headers },
     );
-    if (!membershipRes.ok) {
+    // 404 is how GitHub answers for an account that is not in the org at all.
+    if (membershipRes.status === 404) {
       return null;
+    }
+    if (!membershipRes.ok) {
+      throw new Error(
+        `GitHub org membership check failed with ${membershipRes.status}`,
+      );
     }
     const membership = await membershipRes.json();
     if (membership.state !== "active") {
@@ -129,7 +149,7 @@ const github: OAuthProvider = {
 
     const res = await fetch("https://api.github.com/user", { headers });
     if (!res.ok) {
-      return null;
+      throw new Error(`GitHub profile request failed with ${res.status}`);
     }
     const data = await res.json();
 

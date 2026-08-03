@@ -15,6 +15,10 @@ export const onGet: RequestHandler = async ({
   const requested = query.get("provider");
   const providerId = isProviderId(requested) ? requested : "google";
 
+  if (!PROVIDERS[providerId].isConfigured(env)) {
+    throw redirect(302, "/?error=provider_not_configured");
+  }
+
   const { state, cookieValue } = createState(providerId);
   cookie.set(STATE_COOKIE_NAME, cookieValue, {
     path: "/",

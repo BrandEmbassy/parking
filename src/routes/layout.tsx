@@ -8,7 +8,9 @@ export interface UserSession {
 
 const AUTH_ERRORS: Record<string, string> = {
   not_authorized:
-    "That GitHub account is not an active member of the BrandEmbassy organization.",
+    "That account is not an active member of the organization allowed to use this app.",
+  provider_not_configured:
+    "That sign-in method is not configured on this server.",
   invalid_state: "Sign-in failed, please try again.",
   auth_failed: "Sign-in failed, please try again.",
 };

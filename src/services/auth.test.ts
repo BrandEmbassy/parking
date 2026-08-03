@@ -46,6 +46,26 @@ describe("isProviderId", () => {
   });
 });
 
+describe("isConfigured", () => {
+  it("is true only when both the client id and the secret are set", () => {
+    expect(PROVIDERS.github.isConfigured(githubEnv)).toBe(true);
+    expect(
+      PROVIDERS.github.isConfigured(makeEnv({ GITHUB_CLIENT_ID: "gh-client" })),
+    ).toBe(false);
+    expect(PROVIDERS.github.isConfigured(makeEnv())).toBe(false);
+
+    expect(
+      PROVIDERS.google.isConfigured(
+        makeEnv({
+          GOOGLE_CLIENT_ID: "g-client",
+          GOOGLE_CLIENT_SECRET: "g-secret",
+        }),
+      ),
+    ).toBe(true);
+    expect(PROVIDERS.google.isConfigured(makeEnv())).toBe(false);
+  });
+});
+
 describe("google.getAuthUrl", () => {
   it("targets Google with the profile scope and the state", () => {
     const url = new URL(
@@ -171,15 +191,23 @@ describe("github.getUserInfo", () => {
     ).toBeNull();
   });
 
-  it("rejects when the profile call fails", async () => {
+  it("throws when the membership call fails for any other reason", async () => {
+    mockGithubFetch(jsonResponse({ message: "Bad credentials" }, false, 401));
+
+    await expect(
+      PROVIDERS.github.getUserInfo(githubEnv, "gho_token"),
+    ).rejects.toThrow("GitHub org membership check failed with 401");
+  });
+
+  it("throws when the profile call fails", async () => {
     mockGithubFetch(
       jsonResponse({ state: "active" }),
       jsonResponse({ message: "Bad credentials" }, false, 401),
     );
 
-    expect(
-      await PROVIDERS.github.getUserInfo(githubEnv, "gho_token"),
-    ).toBeNull();
+    await expect(
+      PROVIDERS.github.getUserInfo(githubEnv, "gho_token"),
+    ).rejects.toThrow("GitHub profile request failed with 401");
   });
 
   it("defaults the org to BrandEmbassy", async () => {
