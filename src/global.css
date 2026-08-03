@@ -128,6 +128,25 @@ a:hover {
   color: var(--color-text);
 }
 
+.sign-in-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.auth-error-banner {
+  background: #fee2e2;
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  color: var(--color-danger);
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
 .main-content {
   flex: 1;
   padding: 1.5rem 1rem 3rem;

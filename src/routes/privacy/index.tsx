@@ -6,7 +6,7 @@ export default component$(() => {
     <div class="container">
       <div class="legal-page">
         <h1>Privacy Policy</h1>
-        <p class="legal-updated">Last updated: March 24, 2026</p>
+        <p class="legal-updated">Last updated: August 3, 2026</p>
 
         <section>
           <h2>Overview</h2>
@@ -41,10 +41,35 @@ export default component$(() => {
         </section>
 
         <section>
+          <h2>GitHub User Data Accessed</h2>
+          <p>
+            When you sign in with GitHub, our application requests access to the
+            following specific types of GitHub user data through OAuth 2.0:
+          </p>
+          <ul>
+            <li>
+              <strong>Profile information</strong> (via the{" "}
+              <code>read:user</code> scope): Your display name, your username
+              (used when no display name is set) and your avatar URL.
+            </li>
+            <li>
+              <strong>Organization membership</strong> (via the{" "}
+              <code>read:org</code> scope): Whether you are an active member of
+              the organization allowed to use the Service. This is checked at
+              sign-in only and is not stored.
+            </li>
+          </ul>
+          <p>
+            We do not access your email address, your repositories, or any other
+            GitHub user data beyond the scopes listed above.
+          </p>
+        </section>
+
+        <section>
           <h2>How We Use Your Data</h2>
           <p>
-            The Google user data we access is used strictly for the following
-            purposes:
+            The user data we access from Google or GitHub is used strictly for
+            the following purposes:
           </p>
           <ul>
             <li>
@@ -61,19 +86,18 @@ export default component$(() => {
             </li>
           </ul>
           <p>
-            We do not use your Google user data for advertising, marketing,
-            profiling, analytics, or any purpose unrelated to the core
-            functionality of managing parking spot reservations. Your data is
-            not used for training machine learning or artificial intelligence
-            models.
+            We do not use this data for advertising, marketing, profiling,
+            analytics, or any purpose unrelated to the core functionality of
+            managing parking spot reservations. Your data is not used for
+            training machine learning or artificial intelligence models.
           </p>
         </section>
 
         <section>
           <h2>Data Sharing</h2>
           <p>
-            We do not sell, trade, rent, or transfer your Google user data to
-            any third parties. Specifically:
+            We do not sell, trade, rent, or transfer your Google or GitHub user
+            data to any third parties. Specifically:
           </p>
           <ul>
             <li>
@@ -119,6 +143,12 @@ export default component$(() => {
                   <strong>Display name:</strong> Stored in a browser cookie for
                   identification purposes. Expires after 30 days.
                 </li>
+                <li>
+                  <strong>Sign-in state:</strong> A random value stored as an
+                  HTTP-only cookie while you are being redirected to Google or
+                  GitHub, used to protect the sign-in against cross-site request
+                  forgery. Expires after 10 minutes.
+                </li>
               </ul>
             </li>
             <li>
@@ -162,7 +192,16 @@ export default component$(() => {
               Google Account permissions
             </a>{" "}
             page and removing Nice Parking from the list of authorized
-            applications.
+            applications. If you signed in with GitHub, the equivalent page is
+            your{" "}
+            <a
+              href="https://github.com/settings/applications"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              GitHub authorized OAuth apps
+            </a>{" "}
+            page.
           </p>
         </section>
 

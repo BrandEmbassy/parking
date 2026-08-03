@@ -67,18 +67,21 @@ export default component$(() => {
           <p>
             NiCE Prague Parking is an internal tool for the Prague office which
             allows employees to view and reserve available parking spaces for
-            the day. Sign in with your Google account to see today's
+            the day. Sign in with your Google or GitHub account to see today's
             availability in real time, claim a specific spot, or use Quick
             Reserve to grab the first free one instantly.
           </p>
         </div>
         <div class="card">
           <p class="text-center" style="margin-bottom: 0.75rem;">
-            Sign in with your Google account to get started.
+            Sign in with your Google or GitHub account to get started.
           </p>
-          <p class="text-center">
-            <a href="/api/auth" class="btn btn-primary">
+          <p class="text-center sign-in-actions">
+            <a href="/api/auth?provider=google" class="btn btn-primary">
               Sign in with Google
+            </a>
+            <a href="/api/auth?provider=github" class="btn btn-outline">
+              Sign in with GitHub
             </a>
           </p>
           <p

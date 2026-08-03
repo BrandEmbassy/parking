@@ -1,10 +1,17 @@
 import { component$, Slot } from "@builder.io/qwik";
-import { routeLoader$ } from "@builder.io/qwik-city";
+import { routeLoader$, useLocation } from "@builder.io/qwik-city";
 
 export interface UserSession {
   isLoggedIn: boolean;
   name: string;
 }
+
+const AUTH_ERRORS: Record<string, string> = {
+  not_authorized:
+    "That GitHub account is not an active member of the BrandEmbassy organization.",
+  invalid_state: "Sign-in failed, please try again.",
+  auth_failed: "Sign-in failed, please try again.",
+};
 
 export const useSession = routeLoader$<UserSession>(async ({ cookie }) => {
   const rawName = cookie.get("user_name")?.value;
@@ -17,6 +24,8 @@ export const useSession = routeLoader$<UserSession>(async ({ cookie }) => {
 
 export default component$(() => {
   const session = useSession();
+  const loc = useLocation();
+  const authError = AUTH_ERRORS[loc.url.searchParams.get("error") || ""];
 
   return (
     <div class="app">
@@ -47,14 +56,30 @@ export default component$(() => {
                 </a>
               </div>
             ) : (
-              <a href="/api/auth" class="btn btn-small btn-primary">
-                Sign in with Google
-              </a>
+              <div class="sign-in-actions">
+                <a
+                  href="/api/auth?provider=google"
+                  class="btn btn-small btn-primary"
+                >
+                  Sign in with Google
+                </a>
+                <a
+                  href="/api/auth?provider=github"
+                  class="btn btn-small btn-outline"
+                >
+                  Sign in with GitHub
+                </a>
+              </div>
             )}
           </div>
         </div>
       </header>
       <main class="main-content">
+        {authError && (
+          <div class="container">
+            <div class="auth-error-banner">{authError}</div>
+          </div>
+        )}
         <Slot />
       </main>
       <footer class="app-footer">
