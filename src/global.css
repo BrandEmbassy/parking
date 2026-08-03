@@ -559,11 +559,31 @@ a:hover {
 }
 
 .availability-badge {
+  position: relative;
+  overflow: hidden;
   font-size: 0.75rem;
   font-weight: 600;
   padding: 0.25rem 0.75rem;
   border-radius: 999px;
   white-space: nowrap;
+  z-index: 0;
+}
+
+/* Progress-bar fill: width and color are driven by inline CSS variables set
+   from the free/total ratio (green -> yellow -> red). */
+.availability-badge::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: var(--availability-percent, 0%);
+  background: var(--availability-color, transparent);
+  opacity: 0.35;
+  z-index: -1;
+  transition:
+    width 0.3s ease,
+    background-color 0.3s ease;
 }
 
 .badge-available {
