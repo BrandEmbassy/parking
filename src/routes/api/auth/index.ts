@@ -1,7 +1,31 @@
 import type { RequestHandler } from "@builder.io/qwik-city";
-import { getAuthUrl } from "~/services/auth";
+import { isProviderId, PROVIDERS } from "~/services/auth";
+import {
+  createState,
+  STATE_COOKIE_MAX_AGE,
+  STATE_COOKIE_NAME,
+} from "~/services/oauth-state";
 
-export const onGet: RequestHandler = async ({ redirect, env }) => {
-  const authUrl = getAuthUrl(env);
-  throw redirect(302, authUrl);
+export const onGet: RequestHandler = async ({
+  query,
+  cookie,
+  redirect,
+  env,
+}) => {
+  const requested = query.get("provider");
+  const providerId = isProviderId(requested) ? requested : "google";
+
+  if (!PROVIDERS[providerId].isConfigured(env)) {
+    throw redirect(302, "/?error=provider_not_configured");
+  }
+
+  const { state, cookieValue } = createState(providerId);
+  cookie.set(STATE_COOKIE_NAME, cookieValue, {
+    path: "/",
+    httpOnly: true,
+    sameSite: "lax",
+    maxAge: STATE_COOKIE_MAX_AGE,
+  });
+
+  throw redirect(302, PROVIDERS[providerId].getAuthUrl(env, state));
 };
