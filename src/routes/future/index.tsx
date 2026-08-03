@@ -1,6 +1,7 @@
 import { component$, useSignal } from "@builder.io/qwik";
 import { type DocumentHead, Link } from "@builder.io/qwik-city";
 import { ConnectionStatus } from "~/components/poll-status/poll-status";
+import { availabilityVisual } from "~/services/availability";
 import { useSpacetimeDays } from "~/hooks/use-spacetimedb";
 import { formatDate } from "~/services/date-utils";
 import { quickReserve } from "~/services/spacetimedb";
@@ -45,15 +46,13 @@ const DayRow = component$<DayRowProps>(
     const quickReserveResult = useSignal<ReserveResult | null>(null);
 
     const showQuickReserve = !mySpot && freeCount > 0;
+    const { percent, color } = availabilityVisual(freeCount, totalSpots);
 
     return (
       <div
         class={`day-row ${freeCount === 0 ? "day-full" : ""} ${isToday ? "day-today" : ""} ${isChanged ? "day-row-changed" : ""} ${mySpot ? "day-mine" : ""}`}
       >
-        <Link
-          href={isToday ? "/" : `/day/${dateEncoded}`}
-          class="day-row-link"
-        >
+        <Link href={isToday ? "/" : `/day/${dateEncoded}`} class="day-row-link">
           <div class="day-info">
             <span class="day-date">{dayData.date}</span>
             <span class="day-name">{dayData.day}</span>
@@ -62,6 +61,14 @@ const DayRow = component$<DayRowProps>(
           <div class="day-availability">
             <span
               class={`availability-badge ${freeCount === 0 ? "badge-full" : freeCount <= 3 ? "badge-low" : "badge-available"}`}
+              style={{
+                "--availability-percent": `${percent}%`,
+                "--availability-color": color,
+              }}
+              role="progressbar"
+              aria-valuenow={freeCount}
+              aria-valuemin={0}
+              aria-valuemax={totalSpots}
             >
               {freeCount} / {totalSpots} free
             </span>
