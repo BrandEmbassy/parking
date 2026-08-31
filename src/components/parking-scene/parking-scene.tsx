@@ -1,5 +1,6 @@
 import { component$, useSignal, type Signal, type QRL } from "@builder.io/qwik";
 import type { SpotData, ReserveResult } from "~/services/types";
+import { ParkingCards } from "~/components/parking-cards/parking-cards";
 import {
   BAY_LABELS,
   BAY_LAYOUT,
@@ -59,6 +60,16 @@ export const ParkingScene = component$<ParkingSceneProps>((props) => {
 
   return (
     <div class="parking-scene">
+      {/*
+        Car defs live outside the stage so <use> keeps resolving when the stage
+        is display:none on narrow viewports and only the card grid is visible.
+      */}
+      <svg
+        aria-hidden="true"
+        class="parking-scene__defs"
+        dangerouslySetInnerHTML={CAR_DEFS_HTML}
+      />
+
       {allTaken && <div class="fully-booked-banner">All spots are taken</div>}
       {hasError && (
         <div class="conflict-banner">
@@ -78,12 +89,6 @@ export const ParkingScene = component$<ParkingSceneProps>((props) => {
       )}
 
       <div class="parking-scene__stage">
-        <svg
-          aria-hidden="true"
-          class="parking-scene__defs"
-          dangerouslySetInnerHTML={CAR_DEFS_HTML}
-        />
-
         {/*
           Bay numbers painted on the back wall. They used to be baked into the
           background image; the current art has them removed, so we draw them.
@@ -284,6 +289,15 @@ export const ParkingScene = component$<ParkingSceneProps>((props) => {
           );
         })}
       </div>
+
+      {/* Narrow-viewport rendering of the same spots; CSS shows one or the other */}
+      <ParkingCards
+        spots={props.spots}
+        userName={props.userName}
+        changedSpots={props.changedSpots}
+        reserveResult={props.reserveResult}
+        onSave$={props.onSave$}
+      />
 
       {fallback.length > 0 && (
         <div class="parking-scene__fallback">
