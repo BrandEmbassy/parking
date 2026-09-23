@@ -1,5 +1,5 @@
 import { component$, useComputed$, useSignal } from "@builder.io/qwik";
-import { type DocumentHead } from "@builder.io/qwik-city";
+import { type DocumentHead, Link } from "@builder.io/qwik-city";
 import { ConnectionStatus } from "~/components/poll-status/poll-status";
 import { ParkingView } from "~/components/parking-view/parking-view";
 import { useSpacetimeDay } from "~/hooks/use-spacetimedb";
@@ -29,7 +29,8 @@ export default component$(() => {
   const prevUrl = `/day/${formatDate(addDays(today, -1))}`;
   const nextUrl = `/day/${formatDate(addDays(today, 1))}`;
 
-  const { data, connected, error, changedSpots } = useSpacetimeDay(todayStr);
+  const todayDate = useComputed$(() => todayStr);
+  const { data, connected, error, changedSpots } = useSpacetimeDay(todayDate);
 
   const editingSpot = useSignal<number | null>(null);
 
@@ -56,12 +57,12 @@ export default component$(() => {
   if (!session.value.isLoggedIn) {
     return (
       <div class="container">
-        <a href={prevUrl} class="day-nav-prev" aria-label="Previous day">
+        <Link href={prevUrl} class="day-nav-prev" aria-label="Previous day">
           ‹
-        </a>
-        <a href={nextUrl} class="day-nav-next" aria-label="Next day">
+        </Link>
+        <Link href={nextUrl} class="day-nav-next" aria-label="Next day">
           ›
-        </a>
+        </Link>
         <div class="today-header">
           <h1>NiCE Prague Parking</h1>
           <p>
@@ -89,8 +90,8 @@ export default component$(() => {
             style="margin-top: 1rem; font-size: 0.8125rem;"
           >
             By signing in you agree to our{" "}
-            <a href="/privacy/">Privacy Policy</a> and{" "}
-            <a href="/terms/">Terms of Service</a>.
+            <Link href="/privacy/">Privacy Policy</Link> and{" "}
+            <Link href="/terms/">Terms of Service</Link>.
           </p>
         </div>
       </div>
@@ -100,12 +101,12 @@ export default component$(() => {
   if (!data.value) {
     return (
       <div class="container">
-        <a href={prevUrl} class="day-nav-prev" aria-label="Previous day">
+        <Link href={prevUrl} class="day-nav-prev" aria-label="Previous day">
           ‹
-        </a>
-        <a href={nextUrl} class="day-nav-next" aria-label="Next day">
+        </Link>
+        <Link href={nextUrl} class="day-nav-next" aria-label="Next day">
           ›
-        </a>
+        </Link>
         <div class="today-header">
           <h1>Today</h1>
           <p class="date-display">
@@ -123,12 +124,12 @@ export default component$(() => {
 
   return (
     <div class="container">
-      <a href={prevUrl} class="day-nav-prev" aria-label="Previous day">
+      <Link href={prevUrl} class="day-nav-prev" aria-label="Previous day">
         ‹
-      </a>
-      <a href={nextUrl} class="day-nav-next" aria-label="Next day">
+      </Link>
+      <Link href={nextUrl} class="day-nav-next" aria-label="Next day">
         ›
-      </a>
+      </Link>
       <div class="today-header">
         <div class="stats">
           <span

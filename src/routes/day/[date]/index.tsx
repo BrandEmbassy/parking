@@ -1,5 +1,10 @@
-import { component$, useComputed$, useSignal } from "@builder.io/qwik";
-import { type DocumentHead, useLocation } from "@builder.io/qwik-city";
+import {
+  component$,
+  useComputed$,
+  useSignal,
+  useTask$,
+} from "@builder.io/qwik";
+import { type DocumentHead, Link, useLocation } from "@builder.io/qwik-city";
 import { ConnectionStatus } from "~/components/poll-status/poll-status";
 import { ParkingView } from "~/components/parking-view/parking-view";
 import { useSpacetimeDay } from "~/hooks/use-spacetimedb";
@@ -16,13 +21,14 @@ import { useSession } from "../../layout";
 export default component$(() => {
   const session = useSession();
   const location = useLocation();
-  const dateStr = decodeURIComponent(location.params.date);
+  const date = useComputed$(() => decodeURIComponent(location.params.date));
+  const dateStr = date.value;
 
   const currentDate = parseDate(dateStr);
   const prevUrl = `/day/${formatDate(addDays(currentDate, -1))}`;
   const nextUrl = `/day/${formatDate(addDays(currentDate, 1))}`;
 
-  const { data, connected, error, changedSpots } = useSpacetimeDay(dateStr);
+  const { data, connected, error, changedSpots } = useSpacetimeDay(date);
 
   const editingSpot = useSignal<number | null>(null);
 
@@ -38,19 +44,27 @@ export default component$(() => {
   // Reserve (manual edit) state
   const reserveResult = useSignal<ReserveResult | null>(null);
 
+  // SPA prev/next navigation reuses this component, so drop per-day UI state
+  useTask$(({ track }) => {
+    track(date);
+    editingSpot.value = null;
+    quickReserveResult.value = null;
+    reserveResult.value = null;
+  });
+
   if (!session.value.isLoggedIn) {
     return (
       <div class="container">
-        <a href={prevUrl} class="day-nav-prev" aria-label="Previous day">
+        <Link href={prevUrl} class="day-nav-prev" aria-label="Previous day">
           ‹
-        </a>
-        <a href={nextUrl} class="day-nav-next" aria-label="Next day">
+        </Link>
+        <Link href={nextUrl} class="day-nav-next" aria-label="Next day">
           ›
-        </a>
+        </Link>
         <div class="today-header">
-          <a href="/future" class="back-link">
+          <Link href="/future" class="back-link">
             &larr; Upcoming
-          </a>
+          </Link>
           <h1>Day Detail</h1>
         </div>
         <div class="card">
@@ -65,16 +79,16 @@ export default component$(() => {
   if (!data.value) {
     return (
       <div class="container">
-        <a href={prevUrl} class="day-nav-prev" aria-label="Previous day">
+        <Link href={prevUrl} class="day-nav-prev" aria-label="Previous day">
           ‹
-        </a>
-        <a href={nextUrl} class="day-nav-next" aria-label="Next day">
+        </Link>
+        <Link href={nextUrl} class="day-nav-next" aria-label="Next day">
           ›
-        </a>
+        </Link>
         <div class="today-header">
-          <a href="/future" class="back-link">
+          <Link href="/future" class="back-link">
             &larr; Upcoming
-          </a>
+          </Link>
           <h1>Day Detail</h1>
         </div>
         <div class="card">
@@ -88,12 +102,12 @@ export default component$(() => {
 
   return (
     <div class="container">
-      <a href={prevUrl} class="day-nav-prev" aria-label="Previous day">
+      <Link href={prevUrl} class="day-nav-prev" aria-label="Previous day">
         ‹
-      </a>
-      <a href={nextUrl} class="day-nav-next" aria-label="Next day">
+      </Link>
+      <Link href={nextUrl} class="day-nav-next" aria-label="Next day">
         ›
-      </a>
+      </Link>
       <div class="today-header">
         <div class="stats">
           <span
@@ -102,9 +116,9 @@ export default component$(() => {
             {freeCount.value} / {spots.value.length} spots free
           </span>
         </div>
-        <a href="/future" class="back-link">
+        <Link href="/future" class="back-link">
           &larr; Upcoming
-        </a>
+        </Link>
         <h1>{data.value.day}</h1>
         <p class="date-display">{data.value.date}</p>
       </div>
