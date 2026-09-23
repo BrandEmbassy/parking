@@ -54,7 +54,6 @@ export default component$(() => {
           <div class="user-section">
             {session.value.isLoggedIn ? (
               <div class="user-info">
-                <DesignToggle />
                 <span class="user-name">{session.value.name}</span>
                 <a href="/api/auth/logout" class="btn btn-small btn-outline">
                   Sign out
@@ -82,8 +81,11 @@ export default component$(() => {
         <Slot />
       </main>
       <footer class="app-footer">
-        <a href="/privacy/">Privacy Policy</a>
-        <a href="/terms/">Terms of Service</a>
+        {session.value.isLoggedIn && <DesignToggle />}
+        <div class="app-footer__links">
+          <a href="/privacy/">Privacy Policy</a>
+          <a href="/terms/">Terms of Service</a>
+        </div>
       </footer>
     </div>
   );

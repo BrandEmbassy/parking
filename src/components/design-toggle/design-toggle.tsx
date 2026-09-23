@@ -6,7 +6,7 @@ import {
 } from "~/hooks/use-design-preference";
 
 /**
- * Header switch between the classic spot grid (off, the default) and the new
+ * Footer switch between the classic spot grid (off, the default) and the new
  * garage scene (on). The choice is remembered per device.
  */
 export const DesignToggle = component$(() => {
