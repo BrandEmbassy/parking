@@ -6,7 +6,11 @@
  * provides reactive signals for spots and reservations data.
  */
 
-import { useSignal, useVisibleTask$ } from "@builder.io/qwik";
+import {
+  type ReadonlySignal,
+  useSignal,
+  useVisibleTask$,
+} from "@builder.io/qwik";
 import type { DayData } from "~/services/types";
 import {
   getConnection,
@@ -41,15 +45,19 @@ function buildDayData(date: string): DayData | null {
 /**
  * Hook that connects to SpacetimeDB and provides reactive data for a single day.
  * Replaces useSpotPollingSignals + setupPolling + pollSpots.
+ *
+ * `date` is a signal so the subscription re-binds when a SPA navigation
+ * reuses the same route component with a different date (e.g. /day/A → /day/B).
  */
-export function useSpacetimeDay(dateStr: string) {
+export function useSpacetimeDay(date: ReadonlySignal<string>) {
   const data = useSignal<DayData | null>(null);
   const connected = useSignal(false);
   const error = useSignal<string | null>(null);
   const changedSpots = useSignal<number[]>([]);
 
   // eslint-disable-next-line qwik/no-use-visible-task
-  useVisibleTask$(({ cleanup }) => {
+  useVisibleTask$(({ track, cleanup }) => {
+    const dateStr = track(date);
     let prevSpots: Map<number, string> = new Map();
 
     const updateData = () => {

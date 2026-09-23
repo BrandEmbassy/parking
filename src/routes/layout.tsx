@@ -1,5 +1,5 @@
 import { component$, Slot } from "@builder.io/qwik";
-import { routeLoader$, useLocation } from "@builder.io/qwik-city";
+import { Link, routeLoader$, useLocation } from "@builder.io/qwik-city";
 import { DesignToggle } from "~/components/design-toggle/design-toggle";
 import { useDesignPreferenceProvider } from "~/hooks/use-design-preference";
 
@@ -35,21 +35,21 @@ export default component$(() => {
     <div class="app">
       <header class="app-header">
         <div class="header-content">
-          <a href="/" class="logo" title="NiCE Prague Parking">
+          <Link href="/" class="logo" title="NiCE Prague Parking">
             <img
               src="/logo.svg"
               alt="NiCE Prague Parking"
               width="28"
               height="28"
             />
-          </a>
+          </Link>
           <nav class="nav">
-            <a href="/" class="nav-link">
+            <Link href="/" class="nav-link">
               Today
-            </a>
-            <a href="/future" class="nav-link">
+            </Link>
+            <Link href="/future" class="nav-link">
               Upcoming
-            </a>
+            </Link>
           </nav>
           <div class="user-section">
             {session.value.isLoggedIn ? (
@@ -83,8 +83,8 @@ export default component$(() => {
       <footer class="app-footer">
         {session.value.isLoggedIn && <DesignToggle />}
         <div class="app-footer__links">
-          <a href="/privacy/">Privacy Policy</a>
-          <a href="/terms/">Terms of Service</a>
+          <Link href="/privacy/">Privacy Policy</Link>
+          <Link href="/terms/">Terms of Service</Link>
         </div>
       </footer>
     </div>
