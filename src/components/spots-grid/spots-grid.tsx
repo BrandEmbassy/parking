@@ -20,13 +20,12 @@ export const SpotsGrid = component$<SpotsGridProps>((props) => {
 
   const result = props.reserveResult?.value;
   const hasError = result && !result.success;
-  const allTaken = props.spots.length > 0 && props.spots.every((s) => s.occupant);
+  const allTaken =
+    props.spots.length > 0 && props.spots.every((s) => s.occupant);
 
   return (
     <div class="spots-grid">
-      {allTaken && (
-        <div class="fully-booked-banner">All spots are taken</div>
-      )}
+      {allTaken && <div class="fully-booked-banner">All spots are taken</div>}
       {hasError && (
         <div class="conflict-banner">
           <p>{result.error}</p>

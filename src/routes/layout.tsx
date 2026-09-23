@@ -1,5 +1,7 @@
 import { component$, Slot } from "@builder.io/qwik";
 import { routeLoader$, useLocation } from "@builder.io/qwik-city";
+import { DesignToggle } from "~/components/design-toggle/design-toggle";
+import { useDesignPreferenceProvider } from "~/hooks/use-design-preference";
 
 export interface UserSession {
   isLoggedIn: boolean;
@@ -27,6 +29,8 @@ export default component$(() => {
   const loc = useLocation();
   const authError = AUTH_ERRORS[loc.url.searchParams.get("error") || ""];
 
+  useDesignPreferenceProvider();
+
   return (
     <div class="app">
       <header class="app-header">
@@ -50,6 +54,7 @@ export default component$(() => {
           <div class="user-section">
             {session.value.isLoggedIn ? (
               <div class="user-info">
+                <DesignToggle />
                 <span class="user-name">{session.value.name}</span>
                 <a href="/api/auth/logout" class="btn btn-small btn-outline">
                   Sign out
