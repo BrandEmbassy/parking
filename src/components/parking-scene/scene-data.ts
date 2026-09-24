@@ -145,7 +145,7 @@ export const BAY_LAYOUT: Record<number, BayLayout> = {
   89: {
     cx: 34.8,
     w: 10.4,
-    ground: 90.5,
+    ground: 89.5,
     side: true,
     flip: true,
     label: { x: 549.9, y: 464, capH: CAP_H_LOWER, fill: "#f3be2f" },
@@ -153,7 +153,7 @@ export const BAY_LAYOUT: Record<number, BayLayout> = {
   88: {
     cx: 49.6,
     w: 10.4,
-    ground: 90.8,
+    ground: 89.5,
     side: false,
     flip: false,
     label: { x: 779.5, y: 469, capH: CAP_H_LOWER, fill: "#8dba4f" },
@@ -161,7 +161,7 @@ export const BAY_LAYOUT: Record<number, BayLayout> = {
   87: {
     cx: 64.2,
     w: 10.4,
-    ground: 90.5,
+    ground: 89.5,
     side: true,
     flip: false,
     label: { x: 1008.5, y: 464, capH: CAP_H_LOWER, fill: "#e77335" },
@@ -169,7 +169,7 @@ export const BAY_LAYOUT: Record<number, BayLayout> = {
   86: {
     cx: 85,
     w: 10.4,
-    ground: 90.5,
+    ground: 89.5,
     side: true,
     flip: false,
     label: { x: 1308.5, y: 464, capH: CAP_H_LOWER, fill: "#e77335" },
