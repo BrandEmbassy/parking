@@ -142,7 +142,7 @@ export const BAY_LAYOUT: Record<number, BayLayout> = {
     flip: true,
     label: { x: 1503.0, y: 146, capH: CAP_H_UPPER, fill: "#71bab0" },
   },
-  86: {
+  89: {
     cx: 34.8,
     w: 10.4,
     ground: 90.5,
@@ -158,7 +158,7 @@ export const BAY_LAYOUT: Record<number, BayLayout> = {
     flip: false,
     label: { x: 779.5, y: 469, capH: CAP_H_LOWER, fill: "#8dba4f" },
   },
-  89: {
+  86: {
     cx: 64.2,
     w: 10.4,
     ground: 90.5,
