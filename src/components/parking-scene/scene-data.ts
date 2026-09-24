@@ -1,7 +1,7 @@
 /**
  * Pure data + helpers for the parking garage scene.
  *
- * The scene is a fixed cartoon illustration of the NiCE garage (public/parking-bg.png)
+ * The scene is a fixed cartoon illustration of the NiCE garage
  * with two floors. Each bay has a fixed position in the art, so the geometry lives in
  * a static map keyed by bay number. Spot names in the database are "<floor>/<bay>"
  * (e.g. "-1/070", "-1/063 ♿️", "-2/086"); we parse the bay number to look up its box.
@@ -142,10 +142,10 @@ export const BAY_LAYOUT: Record<number, BayLayout> = {
     flip: true,
     label: { x: 1503.0, y: 146, capH: CAP_H_UPPER, fill: "#71bab0" },
   },
-  86: {
+  89: {
     cx: 34.8,
     w: 10.4,
-    ground: 90.5,
+    ground: 89.5,
     side: true,
     flip: true,
     label: { x: 549.9, y: 464, capH: CAP_H_LOWER, fill: "#f3be2f" },
@@ -153,18 +153,26 @@ export const BAY_LAYOUT: Record<number, BayLayout> = {
   88: {
     cx: 49.6,
     w: 10.4,
-    ground: 90.8,
+    ground: 89.5,
     side: false,
     flip: false,
     label: { x: 779.5, y: 469, capH: CAP_H_LOWER, fill: "#8dba4f" },
   },
-  89: {
+  87: {
     cx: 64.2,
     w: 10.4,
-    ground: 90.5,
+    ground: 89.5,
     side: true,
     flip: false,
     label: { x: 1008.5, y: 464, capH: CAP_H_LOWER, fill: "#e77335" },
+  },
+  86: {
+    cx: 85,
+    w: 10.4,
+    ground: 89.5,
+    side: true,
+    flip: false,
+    label: { x: 1308.5, y: 464, capH: CAP_H_LOWER, fill: "#e77335" },
   },
 };
 
@@ -184,7 +192,7 @@ export interface BayLabel {
 /**
  * The bay numbers painted on the garage's back wall.
  *
- * The original background art (parking-bg.png) had them baked in; the current art
+ * The original background art had them baked in; the current art
  * (parking-bg.jpg) is the same illustration with them removed, so the app draws
  * them instead. Position, size and colour were measured off the old art by diffing
  * the two images — they are irregular because the illustration is in perspective,
