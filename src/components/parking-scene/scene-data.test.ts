@@ -73,7 +73,23 @@ describe("initialsOf", () => {
   });
 
   it("handles a single word", () => {
-    expect(initialsOf("Cher")).toBe("C");
+    expect(initialsOf("Anna")).toBe("A");
+  });
+
+  it("treats the Czech digraph Ch as one letter", () => {
+    expect(initialsOf("Jan Chobotnice")).toBe("JCh");
+    expect(initialsOf("Chrudoš Kedluben")).toBe("ChK");
+    expect(initialsOf("Cher")).toBe("Ch");
+  });
+
+  it("capitalises Ch as Ch whatever the input case", () => {
+    expect(initialsOf("jan chobotnice")).toBe("JCh");
+    expect(initialsOf("JAN CHOBOTNICE")).toBe("JCh");
+  });
+
+  it("does not treat C followed by another letter as Ch", () => {
+    expect(initialsOf("Jan Čočka")).toBe("JČ");
+    expect(initialsOf("Jana Cibule")).toBe("JC");
   });
 });
 
@@ -84,6 +100,12 @@ describe("shortNameOf", () => {
 
   it("keeps a single word as-is", () => {
     expect(shortNameOf("Cher")).toBe("Cher");
+  });
+
+  it("treats the Czech digraph Ch as one letter", () => {
+    expect(shortNameOf("Jan Chobotnice")).toBe("Jan Ch.");
+    expect(shortNameOf("Jana Marie Chobotnicová")).toBe("Jana Ch.");
+    expect(shortNameOf("Jana Cibule")).toBe("Jana C.");
   });
 });
 

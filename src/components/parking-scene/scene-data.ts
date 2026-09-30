@@ -275,22 +275,35 @@ export function hueFromName(name: string): number {
   return h % 360;
 }
 
-/** Up to two uppercase initials from the first and (if present) second word. */
+/**
+ * The first letter of a word. In Czech "Ch" is a single letter with its own place
+ * in the alphabet (after H), so "Chobotnice" starts with "Ch", not "C".
+ */
+function firstLetterOf(word: string): string {
+  return /^ch/i.test(word) ? word.slice(0, 2) : word.slice(0, 1);
+}
+
+/**
+ * Up to two initials from the first and (if present) second word, capitalised:
+ * "Jan Novák" -> "JN", "Jan Chobotnice" -> "JCh".
+ */
 export function initialsOf(name: string): string {
   return name
     .trim()
     .split(/\s+/)
     .slice(0, 2)
-    .map((p) => p[0] ?? "")
-    .join("")
-    .toUpperCase();
+    .map((p) => {
+      const letter = firstLetterOf(p);
+      return letter.slice(0, 1).toUpperCase() + letter.slice(1).toLowerCase();
+    })
+    .join("");
 }
 
 /** Short display name: "First L." when there are ≥2 words, else the single word. */
 export function shortNameOf(name: string): string {
   const parts = name.trim().split(/\s+/);
   return parts.length > 1
-    ? parts[0] + " " + parts[parts.length - 1][0] + "."
+    ? parts[0] + " " + firstLetterOf(parts[parts.length - 1]) + "."
     : parts[0];
 }
 
