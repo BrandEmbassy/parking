@@ -51,6 +51,10 @@ export default component$(() => {
   const quickReserveResult = useSignal<ReserveResult | null>(null);
   const quickReserveRunning = useSignal(false);
 
+  // Clear-my-spot state (left early — hand the spot back for others)
+  const clearSpotResult = useSignal<ReserveResult | null>(null);
+  const clearSpotRunning = useSignal(false);
+
   // Reserve (manual edit) state
   const reserveResult = useSignal<ReserveResult | null>(null);
 
@@ -151,35 +155,84 @@ export default component$(() => {
       )}
 
       <div class="actions-bar">
-        <button
-          type="button"
-          class="btn btn-primary"
-          disabled={freeCount.value === 0 || quickReserveRunning.value}
-          onClick$={async () => {
-            quickReserveResult.value = null;
-            quickReserveRunning.value = true;
+        {mySpot.value ? (
+          <button
+            type="button"
+            class="btn btn-outline"
+            disabled={clearSpotRunning.value}
+            onClick$={async () => {
+              const spot = mySpot.value;
+              if (!spot) return;
+              if (
+                !confirm(
+                  `Clear your reservation of spot ${spot.name} and make it available for others?`,
+                )
+              ) {
+                return;
+              }
 
-            try {
-              await quickReserve(todayStr, session.value.name);
-              quickReserveResult.value = { success: true };
-            } catch (err) {
-              quickReserveResult.value = {
-                success: false,
-                error:
-                  err instanceof Error ? err.message : "Quick reserve failed",
-              };
-            }
+              quickReserveResult.value = null;
+              clearSpotResult.value = null;
+              clearSpotRunning.value = true;
 
-            quickReserveRunning.value = false;
-          }}
-        >
-          Quick Reserve
-        </button>
+              try {
+                // Pass the stored occupant: mySpot matches case-insensitively,
+                // the reducer compares exactly.
+                await cancelReservation(spot.spotId, todayStr, spot.occupant);
+                clearSpotResult.value = { success: true, spotName: spot.name };
+              } catch (err) {
+                clearSpotResult.value = {
+                  success: false,
+                  error:
+                    err instanceof Error ? err.message : "Clearing spot failed",
+                };
+              }
+
+              clearSpotRunning.value = false;
+            }}
+          >
+            Clear my spot
+          </button>
+        ) : (
+          <button
+            type="button"
+            class="btn btn-primary"
+            disabled={freeCount.value === 0 || quickReserveRunning.value}
+            onClick$={async () => {
+              quickReserveResult.value = null;
+              clearSpotResult.value = null;
+              quickReserveRunning.value = true;
+
+              try {
+                await quickReserve(todayStr, session.value.name);
+                quickReserveResult.value = { success: true };
+              } catch (err) {
+                quickReserveResult.value = {
+                  success: false,
+                  error:
+                    err instanceof Error ? err.message : "Quick reserve failed",
+                };
+              }
+
+              quickReserveRunning.value = false;
+            }}
+          >
+            Quick Reserve
+          </button>
+        )}
         {quickReserveResult.value?.success && (
           <span class="success-msg">Reserved!</span>
         )}
         {quickReserveResult.value && !quickReserveResult.value.success && (
           <span class="error-msg">{quickReserveResult.value.error}</span>
+        )}
+        {clearSpotResult.value?.success && (
+          <span class="success-msg">
+            Spot {clearSpotResult.value.spotName} is free for others
+          </span>
+        )}
+        {clearSpotResult.value && !clearSpotResult.value.success && (
+          <span class="error-msg">{clearSpotResult.value.error}</span>
         )}
       </div>
 
