@@ -9,6 +9,8 @@ export interface SpotData {
   name: string;
   /** Person who reserved (empty string = free) */
   occupant: string;
+  /** Car colour the occupant picked ("#rrggbb"), if they picked one */
+  carColor?: string;
 }
 
 /**

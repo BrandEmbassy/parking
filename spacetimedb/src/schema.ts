@@ -39,5 +39,20 @@ const reservation = table(
   },
 );
 
-const spacetimedb = schema({ spot, reservation });
+// The colour each person's car is drawn in on the garage scene. People without a
+// row get a colour derived from their name, so this only holds explicit choices.
+const carColor = table(
+  {
+    name: "car_color",
+    public: true,
+  },
+  {
+    // Trimmed, lower-cased display name — occupants are matched
+    // case-insensitively everywhere else, so the colour follows suit.
+    owner: t.string().primaryKey(),
+    color: t.string(), // "#rrggbb"
+  },
+);
+
+const spacetimedb = schema({ spot, reservation, carColor });
 export default spacetimedb;

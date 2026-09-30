@@ -10,6 +10,12 @@ import {
   type Infer as __Infer,
 } from "spacetimedb";
 
+export const CarColor = __t.object("CarColor", {
+  owner: __t.string(),
+  color: __t.string(),
+});
+export type CarColor = __Infer<typeof CarColor>;
+
 export const ImportEntry = __t.object("ImportEntry", {
   spotName: __t.string(),
   date: __t.string(),

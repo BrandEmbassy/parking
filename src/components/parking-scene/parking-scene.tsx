@@ -9,10 +9,9 @@ import {
   SCENE_W,
   FRONT_VB,
   SIDE_VB,
-  MINE_HUE,
   bayBox,
+  carPaintFor,
   parseSpotName,
-  hueFromName,
   initialsOf,
   shortNameOf,
 } from "./scene-data";
@@ -220,10 +219,9 @@ export const ParkingScene = component$<ParkingSceneProps>((props) => {
             );
           }
 
-          const hue = isMine ? MINE_HUE : hueFromName(spot.occupant);
           const useSide = layout.side;
           const carStyle: Record<string, string> = {
-            "--car-hue": String(hue),
+            ...carPaintFor(spot.occupant, isMine, spot.carColor),
             transform: layout.flip && useSide ? "scaleX(-1)" : "none",
           };
           const carTitle = isMine

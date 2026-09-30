@@ -142,6 +142,37 @@ export const quickReserve = spacetimedb.reducer(
   },
 );
 
+// Set the colour of someone's car on the garage scene, or pass "" as `color` to
+// go back to the colour derived from their name.
+export const setCarColor = spacetimedb.reducer(
+  { owner: t.string(), color: t.string() },
+  (ctx, { owner, color }) => {
+    const key = owner.trim().toLowerCase();
+    if (!key) {
+      throw new SenderError("Owner name is required");
+    }
+
+    if (color === "") {
+      ctx.db.carColor.owner.delete(key);
+      console.log(`${owner.trim()} reset their car colour`);
+      return;
+    }
+
+    const normalized = color.toLowerCase();
+    if (!/^#[0-9a-f]{6}$/.test(normalized)) {
+      throw new SenderError(`Colour must be in #rrggbb format, got "${color}"`);
+    }
+
+    const row = { owner: key, color: normalized };
+    if (ctx.db.carColor.owner.find(key)) {
+      ctx.db.carColor.owner.update(row);
+    } else {
+      ctx.db.carColor.insert(row);
+    }
+    console.log(`${owner.trim()} set their car colour to ${normalized}`);
+  },
+);
+
 // Admin: seed spot definitions (for initial data migration)
 export const seedSpots = spacetimedb.reducer(
   { names: t.array(t.string()) },

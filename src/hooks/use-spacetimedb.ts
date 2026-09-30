@@ -13,6 +13,7 @@ import {
 } from "@builder.io/qwik";
 import type { DayData } from "~/services/types";
 import {
+  getCarColor,
   getConnection,
   getIsConnected,
   getSpotsForDate,
@@ -38,6 +39,7 @@ function buildDayData(date: string): DayData | null {
       spotId: s.spotId,
       name: s.name,
       occupant: s.occupant,
+      carColor: s.occupant ? getCarColor(s.occupant) : undefined,
     })),
   };
 }
@@ -177,4 +179,33 @@ export function useSpacetimeDays(dates: string[]) {
   });
 
   return { days, connected, error, changedDates };
+}
+
+/**
+ * The car colour `name` has picked ("#rrggbb"), or "" while they have not picked
+ * one, kept live from SpacetimeDB so a change made in another tab shows up here.
+ */
+export function useCarColor(name: ReadonlySignal<string>) {
+  const color = useSignal("");
+
+  // eslint-disable-next-line qwik/no-use-visible-task
+  useVisibleTask$(({ track, cleanup }) => {
+    const owner = track(name);
+    const update = () => {
+      color.value = getCarColor(owner) ?? "";
+    };
+
+    const unsubscribe = onDataChange(update);
+    getConnection()
+      .then(update)
+      .catch(() => {
+        // The page's own connection status already reports a failed connection.
+      });
+
+    cleanup(() => {
+      unsubscribe();
+    });
+  });
+
+  return color;
 }

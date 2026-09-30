@@ -4,7 +4,7 @@
  * This replaces the entire Google Sheets data layer (sheets.ts, spot-actions.ts, use-polling.ts).
  * It manages a WebSocket connection to SpacetimeDB Cloud and provides:
  * - Real-time spot and reservation data via subscriptions
- * - Reducer calls for reserve/cancel/quick-reserve
+ * - Reducer calls for reserve/cancel/quick-reserve and picking a car colour
  * - Connection status tracking
  *
  * Since Qwik is not React, we don't use SpacetimeDB's React hooks.
@@ -12,7 +12,7 @@
  */
 
 import { DbConnection } from "~/module_bindings";
-import type { Reservation, Spot } from "~/module_bindings/types";
+import type { CarColor, Reservation, Spot } from "~/module_bindings/types";
 
 // Environment config — baked in at build time via Vite (PUBLIC_ prefix required for client exposure)
 const SPACETIMEDB_URI = import.meta.env.PUBLIC_SPACETIMEDB_URI as string;
@@ -32,6 +32,8 @@ let isConnected = false;
 // Data cache — updated by subscription callbacks
 let spots: Spot[] = [];
 let reservations: Reservation[] = [];
+// Picked car colours, keyed by the owner's trimmed, lower-cased name
+let carColors = new Map<string, string>();
 
 // Listeners for data changes
 type DataListener = () => void;
@@ -65,7 +67,7 @@ export function getConnection(): Promise<DbConnection> {
           console.log("[SpacetimeDB] Connected");
           isConnected = true;
 
-          // Subscribe to all spots and reservations
+          // Subscribe to all spots, reservations and car colours
           conn
             .subscriptionBuilder()
             .onApplied(() => {
@@ -77,7 +79,11 @@ export function getConnection(): Promise<DbConnection> {
             .onError((ctx) => {
               console.error("[SpacetimeDB] Subscription error:", ctx);
             })
-            .subscribe(["SELECT * FROM spot", "SELECT * FROM reservation"]);
+            .subscribe([
+              "SELECT * FROM spot",
+              "SELECT * FROM reservation",
+              "SELECT * FROM car_color",
+            ]);
         })
         .onConnectError((_ctx, err: Error) => {
           console.error("[SpacetimeDB] Connection error:", err);
@@ -109,6 +115,16 @@ export function getConnection(): Promise<DbConnection> {
       conn.db.reservation.onDelete(() => {
         syncDataFromConnection(conn);
       });
+      // Changing a colour updates the row in place, unlike reservations
+      conn.db.carColor.onInsert(() => {
+        syncDataFromConnection(conn);
+      });
+      conn.db.carColor.onUpdate(() => {
+        syncDataFromConnection(conn);
+      });
+      conn.db.carColor.onDelete(() => {
+        syncDataFromConnection(conn);
+      });
     } catch (err) {
       connectionPromise = null;
       reject(err);
@@ -124,6 +140,9 @@ export function getConnection(): Promise<DbConnection> {
 function syncDataFromConnection(conn: DbConnection) {
   spots = [...conn.db.spot].sort((a, b) => a.sortOrder - b.sortOrder);
   reservations = [...conn.db.reservation];
+  carColors = new Map(
+    [...conn.db.carColor].map((c: CarColor) => [c.owner, c.color]),
+  );
   notifyListeners();
 }
 
@@ -144,6 +163,16 @@ export function getSpots(): Spot[] {
 
 export function getReservations(): Reservation[] {
   return reservations;
+}
+
+/** Key a car colour is stored under — matches the module's normalisation. */
+export function carColorKey(name: string): string {
+  return name.trim().toLowerCase();
+}
+
+/** The car colour `name` picked ("#rrggbb"), or undefined if they never did. */
+export function getCarColor(name: string): string | undefined {
+  return carColors.get(carColorKey(name));
 }
 
 /**
@@ -214,6 +243,12 @@ export async function quickReserve(
 ): Promise<void> {
   const conn = await getConnection();
   await conn.reducers.quickReserve({ date, occupant });
+}
+
+/** Pick `owner`'s car colour ("#rrggbb"), or pass "" to reset it. */
+export async function setCarColor(owner: string, color: string): Promise<void> {
+  const conn = await getConnection();
+  await conn.reducers.setCarColor({ owner, color });
 }
 
 /**

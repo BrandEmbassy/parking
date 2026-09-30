@@ -1,5 +1,6 @@
 import { component$, Slot } from "@builder.io/qwik";
 import { Link, routeLoader$, useLocation } from "@builder.io/qwik-city";
+import { CarColorPicker } from "~/components/car-color-picker/car-color-picker";
 import { DesignToggle } from "~/components/design-toggle/design-toggle";
 import { useDesignPreferenceProvider } from "~/hooks/use-design-preference";
 
@@ -29,7 +30,7 @@ export default component$(() => {
   const loc = useLocation();
   const authError = AUTH_ERRORS[loc.url.searchParams.get("error") || ""];
 
-  useDesignPreferenceProvider();
+  const design = useDesignPreferenceProvider();
 
   return (
     <div class="app">
@@ -81,7 +82,15 @@ export default component$(() => {
         <Slot />
       </main>
       <footer class="app-footer">
-        {session.value.isLoggedIn && <DesignToggle />}
+        {session.value.isLoggedIn && (
+          <div class="app-footer__prefs">
+            <DesignToggle />
+            {/* Car colours only exist in the garage scene */}
+            {design.value === "scene" && (
+              <CarColorPicker userName={session.value.name} />
+            )}
+          </div>
+        )}
         <div class="app-footer__links">
           <Link href="/privacy/">Privacy Policy</Link>
           <Link href="/terms/">Terms of Service</Link>
