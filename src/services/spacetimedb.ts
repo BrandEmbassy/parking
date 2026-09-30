@@ -60,6 +60,7 @@ export function getConnection(): Promise<DbConnection> {
 
   connectionPromise = new Promise((resolve, reject) => {
     try {
+      let carColorsApplied = false;
       const conn = DbConnection.builder()
         .withUri(SPACETIMEDB_URI)
         .withDatabaseName(SPACETIMEDB_MODULE)
@@ -67,23 +68,47 @@ export function getConnection(): Promise<DbConnection> {
           console.log("[SpacetimeDB] Connected");
           isConnected = true;
 
-          // Subscribe to all spots, reservations and car colours
+          // Subscribe to all spots and reservations
+          let applied = false;
           conn
             .subscriptionBuilder()
             .onApplied(() => {
               console.log("[SpacetimeDB] Subscription applied, data loaded");
+              applied = true;
               // Initial data load
               syncDataFromConnection(conn);
               resolve(conn);
             })
             .onError((ctx) => {
               console.error("[SpacetimeDB] Subscription error:", ctx);
+              if (applied) return;
+              // Without the data the connection is useless, so fail rather than
+              // leave every caller waiting; the next getConnection() starts over
+              connectionPromise = null;
+              isConnected = false;
+              connection = null;
+              conn.disconnect();
+              reject(new Error("Could not load parking data"));
             })
-            .subscribe([
-              "SELECT * FROM spot",
-              "SELECT * FROM reservation",
-              "SELECT * FROM car_color",
-            ]);
+            .subscribe(["SELECT * FROM spot", "SELECT * FROM reservation"]);
+
+          // Car colours get their own subscription, so if it fails (say the
+          // module has not been published with the table yet) only the colours
+          // are lost. Until it is applied, the initial rows' inserts are ignored
+          // and the colours are synced once instead of once per row.
+          conn
+            .subscriptionBuilder()
+            .onApplied(() => {
+              carColorsApplied = true;
+              syncCarColors(conn);
+            })
+            .onError((ctx) => {
+              console.error(
+                "[SpacetimeDB] Car colour subscription error:",
+                ctx,
+              );
+            })
+            .subscribe(["SELECT * FROM car_color"]);
         })
         .onConnectError((_ctx, err: Error) => {
           console.error("[SpacetimeDB] Connection error:", err);
@@ -93,6 +118,8 @@ export function getConnection(): Promise<DbConnection> {
         })
         .onDisconnect(() => {
           console.log("[SpacetimeDB] Disconnected");
+          // Already dropped after a failed subscription, maybe replaced since
+          if (connection !== conn) return;
           isConnected = false;
           connection = null;
           connectionPromise = null;
@@ -116,15 +143,12 @@ export function getConnection(): Promise<DbConnection> {
         syncDataFromConnection(conn);
       });
       // Changing a colour updates the row in place, unlike reservations
-      conn.db.carColor.onInsert(() => {
-        syncDataFromConnection(conn);
-      });
-      conn.db.carColor.onUpdate(() => {
-        syncDataFromConnection(conn);
-      });
-      conn.db.carColor.onDelete(() => {
-        syncDataFromConnection(conn);
-      });
+      const onCarColorChange = () => {
+        if (carColorsApplied) syncCarColors(conn);
+      };
+      conn.db.carColor.onInsert(onCarColorChange);
+      conn.db.carColor.onUpdate(onCarColorChange);
+      conn.db.carColor.onDelete(onCarColorChange);
     } catch (err) {
       connectionPromise = null;
       reject(err);
@@ -140,6 +164,14 @@ export function getConnection(): Promise<DbConnection> {
 function syncDataFromConnection(conn: DbConnection) {
   spots = [...conn.db.spot].sort((a, b) => a.sortOrder - b.sortOrder);
   reservations = [...conn.db.reservation];
+  notifyListeners();
+}
+
+/**
+ * Sync just the car colours, so a colour change doesn't re-copy and re-sort
+ * every spot and reservation.
+ */
+function syncCarColors(conn: DbConnection) {
   carColors = new Map(
     [...conn.db.carColor].map((c: CarColor) => [c.owner, c.color]),
   );

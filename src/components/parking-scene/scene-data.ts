@@ -294,6 +294,13 @@ export interface CarPaint {
  */
 const ART_LIGHT_SPREAD = 30;
 
+/**
+ * The saturation of the side art's body paint. `--car-sat` multiplies each
+ * path's own saturation, so dividing by this makes the body match the picked
+ * colour; the front art's more saturated paths overshoot and CSS clamps them.
+ */
+const ART_BODY_SAT = 90.3;
+
 /** The art's own orange shading with just the hue swapped. */
 export function paintFromHue(hue: number): CarPaint {
   return {
@@ -347,7 +354,7 @@ export function paintFromColor(hex: string): CarPaint | null {
   );
   return {
     "--car-hue": hue.toFixed(1),
-    "--car-sat": (saturation / 100).toFixed(3),
+    "--car-sat": (saturation / ART_BODY_SAT).toFixed(3),
     "--car-light": lightness.toFixed(1) + "%",
     "--car-contrast": contrast.toFixed(3),
   };

@@ -104,7 +104,8 @@ describe("paintFromColor", () => {
   it("leaves the art's shading alone for a mid-lightness colour", () => {
     expect(paintFromColor("#ff8000")).toEqual({
       "--car-hue": "30.1",
-      "--car-sat": "1.000",
+      // Full saturation, scaled up from the side art's body paint
+      "--car-sat": "1.107",
       "--car-light": "50.0%",
       "--car-contrast": "1.000",
     });
@@ -119,6 +120,12 @@ describe("paintFromColor", () => {
     expect(white?.["--car-sat"]).toBe("0.000");
     expect(parseFloat(white?.["--car-light"] ?? "")).toBeGreaterThan(90);
     expect(Number(white?.["--car-contrast"])).toBeLessThan(0.5);
+  });
+
+  it("paints the body at the picked colour's own saturation", () => {
+    // Blue is ~72% saturated; the side art's body is drawn at 90.3%
+    const sat = Number(paintFromColor("#1f5fbf")?.["--car-sat"]);
+    expect(90.3 * sat).toBeCloseTo(72.1, 0);
   });
 
   it("returns null for an invalid colour", () => {

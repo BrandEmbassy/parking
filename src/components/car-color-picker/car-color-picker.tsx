@@ -1,7 +1,13 @@
-import { $, component$, useComputed$, useSignal } from "@builder.io/qwik";
+import {
+  $,
+  component$,
+  useComputed$,
+  useOnDocument,
+  useSignal,
+} from "@builder.io/qwik";
 import { CAR_COLOR_PRESETS } from "~/components/parking-scene/scene-data";
 import { useCarColor } from "~/hooks/use-spacetimedb";
-import { setCarColor } from "~/services/spacetimedb";
+import { getCarColor, setCarColor } from "~/services/spacetimedb";
 
 /** What the native picker opens on before a colour is picked: MINE_HUE's blue. */
 const UNPICKED_COLOR = "#0080ff";
@@ -21,29 +27,55 @@ export const CarColorPicker = component$<CarColorPickerProps>((props) => {
   const color = useCarColor(name);
   const open = useSignal(false);
   const error = useSignal<string | null>(null);
+  const root = useSignal<HTMLElement>();
+  const trigger = useSignal<HTMLButtonElement>();
 
   const pick = $(async (next: string) => {
-    const previous = color.value;
     color.value = next;
     error.value = null;
+    open.value = false;
     try {
       await setCarColor(props.userName, next);
     } catch (err) {
-      color.value = previous;
+      // Unless a later pick has replaced this one, fall back to what the server
+      // has: an earlier value may itself have failed or been overwritten since
+      if (color.value === next) {
+        color.value = getCarColor(props.userName) ?? "";
+      }
       error.value =
         err instanceof Error ? err.message : "Could not save the colour";
     }
   });
 
+  useOnDocument(
+    "keydown",
+    $((event: KeyboardEvent) => {
+      if (event.key !== "Escape" || !open.value) return;
+      open.value = false;
+      trigger.value?.focus();
+    }),
+  );
+
+  useOnDocument(
+    "click",
+    $((event: MouseEvent) => {
+      if (!open.value) return;
+      if (root.value?.contains(event.target as Node)) return;
+      open.value = false;
+    }),
+  );
+
   const isPreset = CAR_COLOR_PRESETS.some((p) => p.color === color.value);
 
   return (
-    <div class="car-color">
+    <div class="car-color" ref={root}>
       <button
+        ref={trigger}
         type="button"
         class="car-color__trigger"
         aria-expanded={open.value}
-        aria-controls="car-color-panel"
+        // The panel is only in the DOM while open
+        aria-controls={open.value ? "car-color-panel" : undefined}
         onClick$={() => {
           open.value = !open.value;
         }}

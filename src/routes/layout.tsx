@@ -31,6 +31,10 @@ export default component$(() => {
   const authError = AUTH_ERRORS[loc.url.searchParams.get("error") || ""];
 
   const design = useDesignPreferenceProvider();
+  // Only today's and a single day's view draw the garage. Elsewhere the picker
+  // would open a SpacetimeDB connection just to colour its dot.
+  const showsGarage =
+    loc.url.pathname === "/" || loc.url.pathname.startsWith("/day/");
 
   return (
     <div class="app">
@@ -86,7 +90,7 @@ export default component$(() => {
           <div class="app-footer__prefs">
             <DesignToggle />
             {/* Car colours only exist in the garage scene */}
-            {design.value === "scene" && (
+            {design.value === "scene" && showsGarage && (
               <CarColorPicker userName={session.value.name} />
             )}
           </div>
