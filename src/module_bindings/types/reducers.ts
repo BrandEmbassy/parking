@@ -13,6 +13,7 @@ import ImportSpotsReducer from "../import_spots_reducer";
 import QuickReserveReducer from "../quick_reserve_reducer";
 import ReserveSpotReducer from "../reserve_spot_reducer";
 import SeedSpotsReducer from "../seed_spots_reducer";
+import SetCarColorReducer from "../set_car_color_reducer";
 
 export type CancelReservationParams = __Infer<typeof CancelReservationReducer>;
 export type ClearReservationsParams = __Infer<typeof ClearReservationsReducer>;
@@ -21,4 +22,5 @@ export type ImportSpotsParams = __Infer<typeof ImportSpotsReducer>;
 export type QuickReserveParams = __Infer<typeof QuickReserveReducer>;
 export type ReserveSpotParams = __Infer<typeof ReserveSpotReducer>;
 export type SeedSpotsParams = __Infer<typeof SeedSpotsReducer>;
+export type SetCarColorParams = __Infer<typeof SetCarColorReducer>;
 

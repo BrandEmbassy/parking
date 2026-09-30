@@ -4,7 +4,7 @@
  * This replaces the entire Google Sheets data layer (sheets.ts, spot-actions.ts, use-polling.ts).
  * It manages a WebSocket connection to SpacetimeDB Cloud and provides:
  * - Real-time spot and reservation data via subscriptions
- * - Reducer calls for reserve/cancel/quick-reserve
+ * - Reducer calls for reserve/cancel/quick-reserve and picking a car colour
  * - Connection status tracking
  *
  * Since Qwik is not React, we don't use SpacetimeDB's React hooks.
@@ -12,7 +12,7 @@
  */
 
 import { DbConnection } from "~/module_bindings";
-import type { Reservation, Spot } from "~/module_bindings/types";
+import type { CarColor, Reservation, Spot } from "~/module_bindings/types";
 
 // Environment config — baked in at build time via Vite (PUBLIC_ prefix required for client exposure)
 const SPACETIMEDB_URI = import.meta.env.PUBLIC_SPACETIMEDB_URI as string;
@@ -32,6 +32,8 @@ let isConnected = false;
 // Data cache — updated by subscription callbacks
 let spots: Spot[] = [];
 let reservations: Reservation[] = [];
+// Picked car colours, keyed by the owner's trimmed, lower-cased name
+let carColors = new Map<string, string>();
 
 // Listeners for data changes
 type DataListener = () => void;
@@ -58,6 +60,7 @@ export function getConnection(): Promise<DbConnection> {
 
   connectionPromise = new Promise((resolve, reject) => {
     try {
+      let carColorsApplied = false;
       const conn = DbConnection.builder()
         .withUri(SPACETIMEDB_URI)
         .withDatabaseName(SPACETIMEDB_MODULE)
@@ -66,18 +69,46 @@ export function getConnection(): Promise<DbConnection> {
           isConnected = true;
 
           // Subscribe to all spots and reservations
+          let applied = false;
           conn
             .subscriptionBuilder()
             .onApplied(() => {
               console.log("[SpacetimeDB] Subscription applied, data loaded");
+              applied = true;
               // Initial data load
               syncDataFromConnection(conn);
               resolve(conn);
             })
             .onError((ctx) => {
               console.error("[SpacetimeDB] Subscription error:", ctx);
+              if (applied) return;
+              // Without the data the connection is useless, so fail rather than
+              // leave every caller waiting; the next getConnection() starts over
+              connectionPromise = null;
+              isConnected = false;
+              connection = null;
+              conn.disconnect();
+              reject(new Error("Could not load parking data"));
             })
             .subscribe(["SELECT * FROM spot", "SELECT * FROM reservation"]);
+
+          // Car colours get their own subscription, so if it fails (say the
+          // module has not been published with the table yet) only the colours
+          // are lost. Until it is applied, the initial rows' inserts are ignored
+          // and the colours are synced once instead of once per row.
+          conn
+            .subscriptionBuilder()
+            .onApplied(() => {
+              carColorsApplied = true;
+              syncCarColors(conn);
+            })
+            .onError((ctx) => {
+              console.error(
+                "[SpacetimeDB] Car colour subscription error:",
+                ctx,
+              );
+            })
+            .subscribe(["SELECT * FROM car_color"]);
         })
         .onConnectError((_ctx, err: Error) => {
           console.error("[SpacetimeDB] Connection error:", err);
@@ -87,6 +118,8 @@ export function getConnection(): Promise<DbConnection> {
         })
         .onDisconnect(() => {
           console.log("[SpacetimeDB] Disconnected");
+          // Already dropped after a failed subscription, maybe replaced since
+          if (connection !== conn) return;
           isConnected = false;
           connection = null;
           connectionPromise = null;
@@ -109,6 +142,13 @@ export function getConnection(): Promise<DbConnection> {
       conn.db.reservation.onDelete(() => {
         syncDataFromConnection(conn);
       });
+      // Changing a colour updates the row in place, unlike reservations
+      const onCarColorChange = () => {
+        if (carColorsApplied) syncCarColors(conn);
+      };
+      conn.db.carColor.onInsert(onCarColorChange);
+      conn.db.carColor.onUpdate(onCarColorChange);
+      conn.db.carColor.onDelete(onCarColorChange);
     } catch (err) {
       connectionPromise = null;
       reject(err);
@@ -124,6 +164,17 @@ export function getConnection(): Promise<DbConnection> {
 function syncDataFromConnection(conn: DbConnection) {
   spots = [...conn.db.spot].sort((a, b) => a.sortOrder - b.sortOrder);
   reservations = [...conn.db.reservation];
+  notifyListeners();
+}
+
+/**
+ * Sync just the car colours, so a colour change doesn't re-copy and re-sort
+ * every spot and reservation.
+ */
+function syncCarColors(conn: DbConnection) {
+  carColors = new Map(
+    [...conn.db.carColor].map((c: CarColor) => [c.owner, c.color]),
+  );
   notifyListeners();
 }
 
@@ -144,6 +195,16 @@ export function getSpots(): Spot[] {
 
 export function getReservations(): Reservation[] {
   return reservations;
+}
+
+/** Key a car colour is stored under — matches the module's normalisation. */
+export function carColorKey(name: string): string {
+  return name.trim().toLowerCase();
+}
+
+/** The car colour `name` picked ("#rrggbb"), or undefined if they never did. */
+export function getCarColor(name: string): string | undefined {
+  return carColors.get(carColorKey(name));
 }
 
 /**
@@ -214,6 +275,12 @@ export async function quickReserve(
 ): Promise<void> {
   const conn = await getConnection();
   await conn.reducers.quickReserve({ date, occupant });
+}
+
+/** Pick `owner`'s car colour ("#rrggbb"), or pass "" to reset it. */
+export async function setCarColor(owner: string, color: string): Promise<void> {
+  const conn = await getConnection();
+  await conn.reducers.setCarColor({ owner, color });
 }
 
 /**

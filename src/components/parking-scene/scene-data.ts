@@ -276,6 +276,119 @@ export function hueFromName(name: string): number {
 }
 
 /**
+ * The CSS custom properties the car SVGs read their paint from. `--car-hue` swaps
+ * the hue; the other three default to the art's own saturation and lightness and
+ * are only needed for colours the hue alone cannot express (greys, black, white).
+ */
+export interface CarPaint {
+  "--car-hue": string;
+  "--car-sat": string;
+  "--car-light": string;
+  "--car-contrast": string;
+}
+
+/**
+ * How far the art's shading strays from 50% lightness (its paths span ~20-80%).
+ * A target lightness within this distance of either end keeps the full shading;
+ * closer to black or white the shading is squeezed so it still fits.
+ */
+const ART_LIGHT_SPREAD = 30;
+
+/**
+ * The saturation of the side art's body paint. `--car-sat` multiplies each
+ * path's own saturation, so dividing by this makes the body match the picked
+ * colour; the front art's more saturated paths overshoot and CSS clamps them.
+ */
+const ART_BODY_SAT = 90.3;
+
+/** The art's own orange shading with just the hue swapped. */
+export function paintFromHue(hue: number): CarPaint {
+  return {
+    "--car-hue": String(hue),
+    "--car-sat": "1",
+    "--car-light": "50%",
+    "--car-contrast": "1",
+  };
+}
+
+/** Parse "#rrggbb" (case-insensitive) into HSL, or null if it is not one. */
+export function hexToHsl(
+  hex: string,
+): { hue: number; saturation: number; lightness: number } | null {
+  const match = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex);
+  if (!match) return null;
+  const [red, green, blue] = match
+    .slice(1)
+    .map((channel) => parseInt(channel, 16) / 255);
+  const brightest = Math.max(red, green, blue);
+  const darkest = Math.min(red, green, blue);
+  const lightness = (brightest + darkest) / 2;
+  const chroma = brightest - darkest;
+  if (chroma === 0) {
+    // A grey: no hue to speak of
+    return { hue: 0, saturation: 0, lightness: lightness * 100 };
+  }
+  const saturation = chroma / (1 - Math.abs(2 * lightness - 1));
+  // Which sixth of the colour wheel we are in, from the dominant channel
+  const sector =
+    brightest === red
+      ? ((green - blue) / chroma) % 6
+      : brightest === green
+        ? (blue - red) / chroma + 2
+        : (red - green) / chroma + 4;
+  return {
+    hue: (sector * 60 + 360) % 360,
+    saturation: saturation * 100,
+    lightness: lightness * 100,
+  };
+}
+
+/** Paint that makes the car read as `hex`; null if `hex` is not "#rrggbb". */
+export function paintFromColor(hex: string): CarPaint | null {
+  const hsl = hexToHsl(hex);
+  if (!hsl) return null;
+  const { hue, saturation, lightness } = hsl;
+  const contrast = Math.min(
+    1,
+    Math.min(lightness, 100 - lightness) / ART_LIGHT_SPREAD,
+  );
+  return {
+    "--car-hue": hue.toFixed(1),
+    "--car-sat": (saturation / ART_BODY_SAT).toFixed(3),
+    "--car-light": lightness.toFixed(1) + "%",
+    "--car-contrast": contrast.toFixed(3),
+  };
+}
+
+/**
+ * The paint for an occupied bay: the occupant's own pick if they made one,
+ * otherwise blue for the signed-in user and a name-derived hue for everyone else.
+ */
+export function carPaintFor(
+  occupant: string,
+  isMine: boolean,
+  carColor?: string,
+): CarPaint {
+  const picked = carColor ? paintFromColor(carColor) : null;
+  return picked ?? paintFromHue(isMine ? MINE_HUE : hueFromName(occupant));
+}
+
+/** Suggested car colours, offered as swatches next to a free colour picker. */
+export const CAR_COLOR_PRESETS: ReadonlyArray<{ name: string; color: string }> =
+  [
+    { name: "White", color: "#f2f2f2" },
+    { name: "Silver", color: "#b4b8bc" },
+    { name: "Grey", color: "#6b6f74" },
+    { name: "Black", color: "#1e1e20" },
+    { name: "Red", color: "#d0312d" },
+    { name: "Orange", color: "#ff8000" },
+    { name: "Yellow", color: "#f4c020" },
+    { name: "Green", color: "#2e8b3a" },
+    { name: "Blue", color: "#1f5fbf" },
+    { name: "Brown", color: "#7a4a26" },
+  ];
+
+/**
  * The first letter of a word. In Czech "Ch" is a single letter with its own place
  * in the alphabet (after H), so "Chobotnice" starts with "Ch", not "C".
  */

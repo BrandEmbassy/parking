@@ -4,7 +4,13 @@ import {
   BAY_LAYOUT,
   SCENE_H,
   SCENE_W,
+  CAR_COLOR_PRESETS,
+  MINE_HUE,
   bayBox,
+  carPaintFor,
+  hexToHsl,
+  paintFromColor,
+  paintFromHue,
   parseSpotName,
   hueFromName,
   initialsOf,
@@ -64,6 +70,95 @@ describe("hueFromName", () => {
 
   it("gives different people (usually) different hues", () => {
     expect(hueFromName("Jana Svobodová")).not.toBe(hueFromName("Martin Černý"));
+  });
+});
+
+describe("hexToHsl", () => {
+  it("converts primaries and greys", () => {
+    expect(hexToHsl("#ff0000")).toEqual({
+      hue: 0,
+      saturation: 100,
+      lightness: 50,
+    });
+    expect(hexToHsl("#0000FF")).toEqual({
+      hue: 240,
+      saturation: 100,
+      lightness: 50,
+    });
+    expect(hexToHsl("#808080")?.saturation).toBe(0);
+    expect(hexToHsl("#000000")).toEqual({
+      hue: 0,
+      saturation: 0,
+      lightness: 0,
+    });
+  });
+
+  it("rejects anything that is not #rrggbb", () => {
+    expect(hexToHsl("red")).toBeNull();
+    expect(hexToHsl("#fff")).toBeNull();
+    expect(hexToHsl("#gg0000")).toBeNull();
+  });
+});
+
+describe("paintFromColor", () => {
+  it("leaves the art's shading alone for a mid-lightness colour", () => {
+    expect(paintFromColor("#ff8000")).toEqual({
+      "--car-hue": "30.1",
+      // Full saturation, scaled up from the side art's body paint
+      "--car-sat": "1.107",
+      "--car-light": "50.0%",
+      "--car-contrast": "1.000",
+    });
+  });
+
+  it("desaturates and squeezes the shading for black and white", () => {
+    const black = paintFromColor("#1e1e20");
+    expect(Number(black?.["--car-sat"])).toBeLessThan(0.05);
+    expect(Number(black?.["--car-contrast"])).toBeLessThan(0.5);
+
+    const white = paintFromColor("#f2f2f2");
+    expect(white?.["--car-sat"]).toBe("0.000");
+    expect(parseFloat(white?.["--car-light"] ?? "")).toBeGreaterThan(90);
+    expect(Number(white?.["--car-contrast"])).toBeLessThan(0.5);
+  });
+
+  it("paints the body at the picked colour's own saturation", () => {
+    // Blue is ~72% saturated; the side art's body is drawn at 90.3%
+    const sat = Number(paintFromColor("#1f5fbf")?.["--car-sat"]);
+    expect(90.3 * sat).toBeCloseTo(72.1, 0);
+  });
+
+  it("returns null for an invalid colour", () => {
+    expect(paintFromColor("")).toBeNull();
+  });
+});
+
+describe("carPaintFor", () => {
+  it("uses the occupant's picked colour, even for your own car", () => {
+    expect(carPaintFor("Jana", true, "#d0312d")).toEqual(
+      paintFromColor("#d0312d"),
+    );
+  });
+
+  it("falls back to blue for your car and a name hue for others", () => {
+    expect(carPaintFor("Jana", true)).toEqual(paintFromHue(MINE_HUE));
+    expect(carPaintFor("Jana", false)).toEqual(
+      paintFromHue(hueFromName("Jana")),
+    );
+  });
+
+  it("ignores a malformed stored colour", () => {
+    expect(carPaintFor("Jana", false, "nope")).toEqual(
+      paintFromHue(hueFromName("Jana")),
+    );
+  });
+});
+
+describe("CAR_COLOR_PRESETS", () => {
+  it("are unique, lower-case #rrggbb as the reducer stores them", () => {
+    const colors = CAR_COLOR_PRESETS.map((p) => p.color);
+    expect(new Set(colors).size).toBe(colors.length);
+    for (const c of colors) expect(c).toMatch(/^#[0-9a-f]{6}$/);
   });
 });
 

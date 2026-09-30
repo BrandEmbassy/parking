@@ -235,6 +235,122 @@ a:hover {
   outline-offset: 2px;
 }
 
+/* === Car Colour Picker === */
+.car-color {
+  position: relative;
+}
+
+.car-color__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.car-color__trigger:hover,
+.car-color__trigger[aria-expanded="true"] {
+  color: var(--color-text);
+}
+
+.car-color__trigger:focus-visible,
+.car-color__swatch:focus-visible,
+.car-color__custom:focus-within {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.car-color__dot,
+.car-color__swatch {
+  flex: none;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.car-color__dot {
+  width: 16px;
+  height: 16px;
+}
+
+/* "Auto": one colour per person, so show a spread rather than a single colour */
+.car-color__dot--auto,
+.car-color__swatch--auto {
+  background: conic-gradient(
+    #d0312d,
+    #f4c020,
+    #2e8b3a,
+    #1f5fbf,
+    #8e44ad,
+    #d0312d
+  );
+}
+
+/* The footer sits at the bottom of the page, so the panel opens upwards */
+.car-color__panel {
+  position: absolute;
+  bottom: calc(100% + 0.5rem);
+  left: 0;
+  z-index: 20;
+  width: max-content;
+  max-width: calc(100vw - 2rem);
+  padding: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+}
+
+.car-color__swatches {
+  display: grid;
+  grid-template-columns: repeat(6, 28px);
+  gap: 0.5rem;
+}
+
+.car-color__swatch {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.car-color__swatch[aria-pressed="true"],
+.car-color__custom--active {
+  box-shadow:
+    0 0 0 2px var(--color-surface),
+    0 0 0 4px var(--color-text);
+}
+
+/* Native picker, cropped to a circle so it reads as one more swatch */
+.car-color__custom {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px dashed var(--color-text-muted);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.car-color__input {
+  position: absolute;
+  inset: -8px;
+  width: calc(100% + 16px);
+  height: calc(100% + 16px);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.car-color__error {
+  margin-top: 0.5rem;
+  max-width: 16rem;
+  color: var(--color-danger);
+}
+
 /* === Buttons === */
 .btn {
   display: inline-flex;
@@ -802,8 +918,12 @@ a:hover {
   color: var(--color-text-muted);
 }
 
-.app-footer .design-toggle {
+.app-footer__prefs {
   justify-self: start;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
 }
 
 .app-footer .design-toggle__label {
@@ -933,6 +1053,11 @@ a:hover {
 
   .app-footer {
     grid-template-columns: auto 1fr;
+  }
+
+  /* Too wide to share a row with the links once the car colour joins it */
+  .app-footer__prefs {
+    grid-column: 1 / -1;
   }
 
   .app-footer__links {
@@ -1236,6 +1361,11 @@ a:hover {
      view is actually in the DOM (scene variant); the grid variant keeps it. */
   .container:has(.parking-cards) .my-reservation-banner {
     display: none;
+  }
+
+  /* The fixed my-spot bar would otherwise sit on top of the footer controls */
+  .app:has(.parking-cards--with-bar) .app-footer {
+    padding-bottom: calc(1rem + 84px);
   }
 }
 

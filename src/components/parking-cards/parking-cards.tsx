@@ -4,8 +4,7 @@ import {
   BAY_LAYOUT,
   FRONT_VB,
   SIDE_VB,
-  MINE_HUE,
-  hueFromName,
+  carPaintFor,
   initialsOf,
   shortNameOf,
   parseSpotName,
@@ -82,7 +81,7 @@ export const ParkingCards = component$<ParkingCardsProps>((props) => {
 
               const useSide = layout ? layout.side : true;
               const flip = layout ? layout.flip && layout.side : false;
-              const hue = isMine ? MINE_HUE : hueFromName(spot.occupant);
+              const paint = carPaintFor(spot.occupant, isMine, spot.carColor);
 
               const stateClasses = [
                 isMine ? "pcard--mine" : "",
@@ -152,7 +151,7 @@ export const ParkingCards = component$<ParkingCardsProps>((props) => {
                           viewBox={useSide ? SIDE_VB : FRONT_VB}
                           preserveAspectRatio="xMidYMax meet"
                           style={{
-                            "--car-hue": String(hue),
+                            ...paint,
                             transform: flip ? "scaleX(-1)" : "none",
                           }}
                         >
