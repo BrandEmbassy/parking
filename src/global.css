@@ -1086,9 +1086,11 @@ a:hover {
 }
 
 .bay__avatar {
-  width: 17px;
+  /* A circle for two initials, a pill once the Czech "Ch" makes them longer */
+  min-width: 17px;
   height: 17px;
-  border-radius: 50%;
+  padding: 0 2px;
+  border-radius: 999px;
   display: grid;
   place-items: center;
   flex: none;
@@ -1393,9 +1395,11 @@ a:hover {
 }
 
 .pcard__avatar {
-  width: 22px;
+  /* A circle for two initials, a pill once the Czech "Ch" makes them longer */
+  min-width: 22px;
   height: 22px;
-  border-radius: 50%;
+  padding: 0 2px;
+  border-radius: 999px;
   display: grid;
   place-items: center;
   flex: none;
