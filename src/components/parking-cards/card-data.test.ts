@@ -41,7 +41,7 @@ describe("cardCrop", () => {
   });
 
   it("scrolls down to the lower floor's band", () => {
-    expect(cardCrop("-2", 86)).toEqual({
+    expect(cardCrop("-2", 89)).toEqual({
       backgroundImage: 'url("/parking-bg.jpg")',
       backgroundSize: "1001px 424px",
       backgroundPosition: "30% -224px",
