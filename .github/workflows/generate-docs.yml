@@ -1,0 +1,74 @@
+name: DocPulse — Generate User-Facing Documentation
+
+# -------------------------------------------------------
+# DocPulse - consumer stub
+# Calls the reusable workflow in nice-cxone/cxone-tw-doc-pulse.
+# Drafts are pushed to the DocPulse drafts location (nice-cxone org variables
+# DOCPULSE_DRAFTS_REPO/_BRANCH) under Content/TWAUTOMATION/<product-slug>/.
+# Secrets are inherited from org level (DOCPULSE_*).
+#
+# AUTH MODE: Bedrock via OIDC (default going forward).
+# Prerequisite: this repo must be in the Bedrock OIDC role trust policy.
+# If you see "AccessDenied" on the first workflow run, request inclusion
+# from the platform team (the OIDC role is owned by them, not per-repo).
+# -------------------------------------------------------
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [master, main]
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+      - '.github/workflows/**'
+  workflow_dispatch:
+    inputs:
+      acknowledged:
+        description: >
+          IMPORTANT: This workflow is designed to run automatically on PR merge.
+          Manual dispatch is a recovery tool — use it only when a PR-triggered run
+          failed due to a transient error (e.g., Jira or Bedrock timeout) and
+          retrying is likely to succeed. Do not use it to generate docs outside a
+          PR context; output quality depends on the PR diff and Jira hierarchy.
+          Check this box to confirm you understand the above.
+        required: false
+        type: boolean
+        default: false
+      commit_sha:
+        description: 'Commit SHA to generate docs for (leave empty if using Jira ID)'
+        required: false
+        default: ''
+      jira_id:
+        description: 'Jira ID to generate docs for (e.g., PROJ-1234)'
+        required: false
+        default: ''
+
+jobs:
+  call-docpulse:
+    if: |
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true) ||
+      github.event_name == 'workflow_dispatch'
+
+    # Bedrock/OIDC requires id-token:write. Once `permissions:` is declared,
+    # GitHub caps every other permission to 'none' unless re-granted here -
+    # so contents:read and pull-requests:read must also be listed even though
+    # they would default to read without this block.
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: read
+
+    uses: nice-cxone/cxone-tw-doc-pulse/.github/workflows/generate-docs.yml@master
+    with:
+      product_name: "Digital Experience"
+      # product_description is a FALLBACK. The runtime value is read from
+      # cxone-tw-doc-pulse/config/product-descriptions.yml when an entry
+      # exists for this product name. TW updates that file once → every
+      # repo of the product uses the refined wording on its next PR merge,
+      # no per-repo change needed. This value is used only if the central
+      # file has no matching entry.
+      product_description: "Manages digital engagement channels including chat, email, messaging, and social media, enabling seamless omnichannel customer interactions and consistent digital-first experiences."
+      use_bedrock: true
+      jira_id: ${{ github.event.inputs.jira_id || '' }}
+      commit_sha: ${{ github.event.inputs.commit_sha || '' }}
+    secrets: inherit
